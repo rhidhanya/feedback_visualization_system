@@ -1,0 +1,165 @@
+.login-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--clr-p-dark) 0%, var(--clr-primary) 100%);
+}
+
+.login-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    color: var(--clr-primary);
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: var(--clr-text-3);
+    font-size: 0.875rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group svg {
+    position: absolute;
+    left: 1rem;
+    color: var(--clr-accent);
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid var(--clr-border);
+    border-radius: 8px;
+    outline: none;
+    transition: var(--trans);
+}
+
+.input-group input:focus {
+    border-color: var(--clr-primary);
+    box-shadow: 0 0 0 3px var(--clr-primary-lt);
+}
+
+.login-form button {
+    background: var(--clr-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--trans);
+}
+
+.login-form button:hover {
+    background: var(--clr-p-dark);
+}
+
+.login-form button:disabled {
+    background: var(--clr-border);
+    cursor: not-allowed;
+}
+
+.error-msg {
+    color: var(--clr-danger);
+    font-size: 0.875rem;
+}
+
+/* New Branding Styles */
+.login-header-new {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-logo-wrap {
+    margin-bottom: 1rem;
+}
+
+.login-app-name {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--clr-text-1);
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.login-role-box {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 4px;
+    border: 1px solid var(--clr-border);
+}
+
+.login-role-box.admin {
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
+    border-color: var(--clr-border);
+}
+
+.login-role-box.student {
+    background: rgba(46, 125, 50, 0.08);
+    color: #2e7d32;
+    border-color: rgba(46, 125, 50, 0.2);
+}
+
+.login-role-box.faculty {
+    background: rgba(229, 57, 53, 0.08);
+    color: #e53935;
+    border-color: rgba(229, 57, 53, 0.2);
+}
+
+.login-role-box.dean {
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
+    border-color: var(--clr-border);
+}
+
+.login-role-box.principal {
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
+    border-color: var(--clr-border);
+}
+
+.login-role-box.incharge {
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
+    border-color: var(--clr-border);
+}

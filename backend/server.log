@@ -1,0 +1,36 @@
+[dotenv@17.2.4] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+Trying to connect to MongoDB...
+✅ Server running on port 5000
+   Mode: development
+MongoDB connected successfully
+✅ Default domains seeded/updated (transport, mess, hostel, sanitation)
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: arjun.pillai@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGH01, UserRole: hod
+[Login Attempt] Email: nithya.lakshmi@bitsathy.in, DeptCodeInput: undefined, UserRole: faculty
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGRI, UserRole: hod
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGH01, UserRole: hod
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+Client connected: MoblViFLZnx4FXmiAAAB
+Client disconnected: MoblViFLZnx4FXmiAAAB
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGH01, UserRole: hod
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGRI, UserRole: hod
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGRI, UserRole: hod
+[Login Attempt] Email: hod.agri@bitsathy.in, DeptCodeInput: AGH01, UserRole: hod
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: hod.cse@bitsathy.in, DeptCodeInput: CSH01, UserRole: hod
+Client connected: MR4IneMP1b2Dc-5vAAAD
+Client disconnected: MR4IneMP1b2Dc-5vAAAD
+Client connected: ybuOVlpY5fPVYtMOAAAF
+Client disconnected: ybuOVlpY5fPVYtMOAAAF
+Client connected: 0J0SBjiinVQ7hmFoAAAH
+Client disconnected: 0J0SBjiinVQ7hmFoAAAH
+[Login Attempt] Email: abinaya.velmurugan@bitsathy.in, DeptCodeInput: , UserRole: faculty
+[Login Attempt] Email: hod.cse@bitsathy.in, DeptCodeInput: CSH01, UserRole: hod
+Client connected: JaBVtSoaM3YFWdpAAAAJ
+Socket JaBVtSoaM3YFWdpAAAAJ joined room domain:transport
+Client disconnected: JaBVtSoaM3YFWdpAAAAJ
+Client connected: eggawUR58v7UN1bDAAAL
+Socket eggawUR58v7UN1bDAAAL joined room domain:transport

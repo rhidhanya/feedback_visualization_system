@@ -7,12 +7,15 @@ import logo from '../logo.png';
 const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        hodId: '',
+        facultyId: '',
     });
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { email, password } = formData;
+    const [activeTab, setActiveTab] = useState('student');
+    const { email, password, hodId, facultyId } = formData;
     const navigate = useNavigate();
 
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,13 +26,20 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+            let endpoint = 'http://localhost:5000/api/auth/login';
+            if (activeTab === 'student') endpoint = 'http://localhost:5000/api/auth/student-login';
+            if (activeTab === 'faculty') endpoint = 'http://localhost:5000/api/auth/faculty-login';
+            if (activeTab === 'hod') endpoint = 'http://localhost:5000/api/auth/hod-login';
+
+            const res = await axios.post(endpoint, formData);
             console.log(res.data);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
 
             if (res.data.user.role === 'admin') {
                 navigate('/admin');
+            } else if (res.data.user.role === 'hod') {
+                navigate('/hod/dashboard');
             } else {
                 navigate('/dashboard');
             }
@@ -73,7 +83,7 @@ const Login = () => {
                         fontSize: '1.5rem',
                         margin: '0 auto 16px'
                     }}>
-                        <img src={logo} alt="PRISM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src={logo} alt="CampusLens Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>
                         Welcome Back
@@ -85,17 +95,44 @@ const Login = () => {
 
                 {error && (
                     <div style={{
-                        background: '#fee2e2',
-                        color: '#991b1b',
+                        background: 'var(--clr-danger-lt)',
+                        color: 'var(--clr-danger)',
                         padding: '12px',
                         borderRadius: '8px',
                         marginBottom: '20px',
                         fontSize: '0.9rem',
-                        border: '1px solid #fecaca'
+                        border: '1px solid var(--clr-danger-lt)'
                     }}>
                         {error}
                     </div>
                 )}
+
+                {/* ── Tabs ── */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--clr-surface-2)', padding: '0.4rem', borderRadius: '12px' }}>
+                    {['student', 'faculty', 'hod', 'admin'].map(tab => (
+                        <button
+                            key={tab}
+                            type="button"
+                            onClick={() => { setActiveTab(tab); setError(''); }}
+                            style={{
+                                flex: 1,
+                                padding: '0.6rem 0',
+                                border: 'none',
+                                background: activeTab === tab ? '#fff' : 'transparent',
+                                color: activeTab === tab ? 'var(--clr-primary)' : 'var(--clr-text-2)',
+                                fontWeight: activeTab === tab ? '700' : '600',
+                                fontSize: '0.8rem',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                textTransform: 'capitalize',
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            {tab === 'hod' ? 'HOD' : tab}
+                        </button>
+                    ))}
+                </div>
 
                 <form onSubmit={onSubmit}>
                     <div style={{ marginBottom: '20px' }}>
@@ -126,6 +163,34 @@ const Login = () => {
                             required
                         />
                     </div>
+
+                    {activeTab === 'faculty' && (
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px' }}>Faculty ID</label>
+                            <input
+                                type="text"
+                                name="facultyId"
+                                value={facultyId}
+                                onChange={onChange}
+                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.95rem', outline: 'none', transition: 'border 0.2s ease', fontFamily: 'Inter, sans-serif' }}
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'hod' && (
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px' }}>HOD ID</label>
+                            <input
+                                type="text"
+                                name="hodId"
+                                value={hodId}
+                                onChange={onChange}
+                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.95rem', outline: 'none', transition: 'border 0.2s ease', fontFamily: 'Inter, sans-serif' }}
+                                required
+                            />
+                        </div>
+                    )}
 
                     <div style={{ marginBottom: '24px' }}>
                         <label style={{

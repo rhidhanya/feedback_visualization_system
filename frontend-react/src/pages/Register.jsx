@@ -76,25 +76,25 @@ const Register = () => {
                         fontSize: '1.5rem',
                         margin: '0 auto 16px'
                     }}>
-                        <img src={logo} alt="PRISM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src={logo} alt="CampusLens Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>
                         Create Account
                     </h2>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Join PRISM
+                        Join CampusLens
                     </p>
                 </div>
 
                 {error && (
                     <div style={{
-                        background: '#fee2e2',
-                        color: '#991b1b',
+                        background: 'var(--clr-danger-lt)',
+                        color: 'var(--clr-danger)',
                         padding: '12px',
                         borderRadius: '8px',
                         marginBottom: '20px',
                         fontSize: '0.9rem',
-                        border: '1px solid #fecaca'
+                        border: '1px solid var(--clr-danger-lt)'
                     }}>
                         {error}
                     </div>

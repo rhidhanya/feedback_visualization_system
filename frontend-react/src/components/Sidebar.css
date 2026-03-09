@@ -1,8 +1,8 @@
 .sidebar {
     width: 240px;
-    background-color: #001f3f;
-    /* Navy Blue */
-    border-right: 1px solid #001f3f;
+    background-color: var(--clr-sidebar);
+    /* Deep Purple */
+    border-right: 1px solid var(--clr-sidebar);
     display: flex;
     flex-direction: column;
     padding: 24px 12px;
@@ -35,10 +35,10 @@
 }
 
 .brand-icon {
-    background: #0a1f44;
+    background: var(--clr-p-dark);
     width: 32px;
     height: 32px;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +59,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    color: #94a3b8;
+    color: var(--clr-primary-lt);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,8 +85,8 @@
     gap: 14px;
     padding: 12px;
     cursor: pointer;
-    color: #cbd5e1;
-    /* Light gray text */
+    color: var(--clr-primary-lt);
+    /* Light purple text */
     border-radius: 8px;
     transition: all 0.2s ease;
     white-space: nowrap;

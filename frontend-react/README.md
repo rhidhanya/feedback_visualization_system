@@ -1,70 +1,96 @@
-# Getting Started with Create React App
+# 🚀 CampusLens: Student Feedback Visualization System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+CampusLens is a comprehensive institutional analytics platform designed to bridge the gap between student feedback and institutional improvement. It provides real-time visualization, sentiment analysis, and role-based dashboards to help educational leaders make data-driven decisions.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ✨ Key Features
 
-### `npm start`
+-   **Multi-Role Dashboards:** Tailored interfaces for Admin, Dean, Principal, Faculty, Students, and Domain Incharges (Mess, Transport, Hostel, Sanitation).
+-   **Real-Time Analytics:** Live data visualization using Chart.js with automatic updates via Socket.io.
+-   **Sentiment Analysis:** NLP-driven feedback categorization to identify student concerns automatically.
+-   **Automated Reporting:** Generate PDF reports for departments and faculty performance using PDFKit and jsPDF.
+-   **Domain-Specific Monitoring:** Dedicated tracking for essential services like Hostel, Mess, and Transport.
+-   **Secure Authentication:** Robust RBAC (Role-Based Access Control) with JWT and bcrypt encryption.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Technology Stack
 
-### `npm test`
+### Frontend
+-   **Core:** React.js (v19)
+-   **Styling:** Modern CSS with dark mode support and Glassmorphism.
+-   **Icons & Animations:** Lucide React, React Icons, Framer Motion.
+-   **Data Visualization:** Chart.js, React-Chartjs-2.
+-   **State Management:** React Context API (AuthContext).
+-   **Routing:** React Router DOM (v7).
+-   **Real-time:** Socket.io-client.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Backend
+-   **Runtime:** Node.js
+-   **Framework:** Express.js (v5)
+-   **Database:** MongoDB with Mongoose ODM.
+-   **Security:** JSON Web Tokens (JWT), Bcrypt.js.
+-   **File Handling:** Multer (for CSV/Image uploads).
+-   **NLP:** Natural, Sentiment, Stopword.
+-   **PDF Generation:** PDFKit.
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📂 Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```text
+feedback_visualization_system/
+├── frontend-react/       # React application (Client-side)
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── context/      # Auth & Global state
+│   │   ├── pages/        # Role-based dashboard pages
+│   │   └── assets/       # Styles and images
+├── backend/              # Node.js Express server (API)
+│   ├── models/           # Mongoose schemas
+│   ├── routes/           # API endpoints
+│   ├── controllers/      # Business logic
+│   └── scripts/          # Database seeding and utilities
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## 🚀 Getting Started
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Prerequisites
+- Node.js (v16+)
+- MongoDB (Local or Atlas)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Setup Instructions
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd feedback_visualization_system
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+2. **Backend Setup:**
+   ```bash
+   cd backend
+   npm install
+   # Create a .env file with MONGO_URI and JWT_SECRET
+   npm run dev
+   ```
 
-## Learn More
+3. **Frontend Setup:**
+   ```bash
+   cd ../frontend-react
+   npm install
+   npm start
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🔐 Credentials
+For testing purposes, refer to the [LOGIN_GUIDE.md](./LOGIN_GUIDE.md) for pre-seeded user accounts for all roles.
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📊 Dashboard Documentation
+Detailed implementation notes can be found in [DASHBOARD_FIXES_SUMMARY.md](./DASHBOARD_FIXES_SUMMARY.md).

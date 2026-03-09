@@ -1,298 +1,160 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import "./App.css";
-import axios from "axios";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import {
-  FiUpload,
-  FiCheckCircle,
-  FiDownload,
-  FiMessageSquare,
-} from "react-icons/fi";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
+import { Bar, Pie } from 'react-chartjs-2';
+import { FiSun, FiMoon, FiFileText, FiStar, FiCheckCircle, FiTrendingUp } from 'react-icons/fi';
+import KPICard from './components/KPICard';
+import ActivityFeed from './components/ActivityFeed';
+import './App.css';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend
-);
-
-const API = "http://localhost:5000/api/feedback";
-
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+const API = 'http://localhost:5000/api';
+const SOCKET_URL = 'http://localhost:5000';
 
 const Dashboard = () => {
-  const dashboardRef = useRef();
+  const navigate = useNavigate();
 
-  const [file, setFile] = useState(null);
-  const [fileName, setFileName] = useState("");
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [uploadMessage, setUploadMessage] = useState("");
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyFiles, setHistoryFiles] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [instructors, setInstructors] = useState([]);
+  const [summaryStats, setSummaryStats] = useState(null);
+  const [activities, setActivities] = useState([
+    { message: "Dashboard initialized", time: "Just now" }
+  ]);
+  const [darkMode, setDarkMode] = useState(false);
+  const [filters, setFilters] = useState({ courseId: '', instructorId: '' });
 
-  const [data, setData] = useState({
-    ratings: {},
-    choiceData: {},
-    multiData: {},
-    textResponses: [],
-    total: 0,
-    allRatings: [],
-    timeSeries: [],
-  });
-
-  /* ================= DATA PROCESSING ================= */
-  const processData = useCallback((rows) => {
-    if (!rows || rows.length === 0) {
-      setData({
-        ratings: {},
-        choiceData: {},
-        multiData: {},
-        textResponses: [],
-        total: 0,
-        allRatings: [],
-        timeSeries: [],
-      });
-      return;
-    }
-
-    const ratingMap = {};
-    const allRatings = [];
-    const timeMap = {};
-
-    rows.forEach((entry) => {
-      const date = new Date(entry.createdAt).toLocaleDateString();
-
-      entry.responses?.forEach((r) => {
-        if (r.type === "rating") {
-          if (!ratingMap[r.question]) ratingMap[r.question] = [];
-          ratingMap[r.question].push(r.value);
-          allRatings.push(r.value);
-
-          if (!timeMap[date]) timeMap[date] = [];
-          timeMap[date].push(r.value);
-        }
-      });
-    });
-
-    const avgRatings = {};
-    Object.keys(ratingMap).forEach((q) => {
-      const avg =
-        ratingMap[q].reduce((a, b) => a + b, 0) /
-        ratingMap[q].length;
-      avgRatings[q] = Number(avg.toFixed(1));
-    });
-
-    const timeSeries = Object.keys(timeMap).map((date) => ({
-      date,
-      avg:
-        timeMap[date].reduce((a, b) => a + b, 0) /
-        timeMap[date].length,
-    }));
-
-    setData({
-      ratings: avgRatings,
-      total: rows.length,
-      allRatings,
-      timeSeries,
-    });
+  useEffect(() => {
+    const fetchEntities = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        const cRes = await axios.get(`${API}/courses`, { headers });
+        const iRes = await axios.get(`${API}/instructors`, { headers });
+        setCourses(cRes.data);
+        setInstructors(iRes.data);
+      } catch (err) {
+        console.error("Entity fetch error:", err);
+      }
+    };
+    fetchEntities();
   }, []);
 
-  /* ================= UPLOAD ================= */
-  const handleUpload = async () => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
+  const fetchData = async (queryStr = "") => {
     try {
-      setUploadMessage("Uploading...");
-      await axios.post(`${API}/upload`, formData);
-      setUploadMessage("Uploaded successfully");
-
-      const res = await axios.get(`${API}/files/name/${file.name}`);
-      setSelectedFileName(file.name);
-      processData(res.data);
-    } catch {
-      setUploadMessage("Upload failed");
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const summaryRes = await axios.get(`${API}/feedback/analytics/summary?${queryStr}`, { headers });
+      setSummaryStats(summaryRes.data);
+    } catch (err) {
+      console.error("Fetch Data Error:", err);
     }
   };
 
-  /* ================= HISTORY ================= */
-  const loadHistory = async () => {
-    try {
-      const res = await axios.get(`${API}/stats`);
-      setHistoryFiles(res.data);
-      setShowHistory(true);
-    } catch { }
-  };
+  useEffect(() => {
+    fetchData();
+    const socket = io(SOCKET_URL);
+    socket.on("feedback-updated", (data) => {
+      setActivities(prev => [{ message: `New feedback received for a course`, time: "Just now" }, ...prev.slice(0, 9)]);
+      fetchData();
+    });
+    return () => socket.disconnect();
+  }, []);
 
-  const selectFile = async (fileName) => {
-    const res = await axios.get(
-      `${API}/files/name/${encodeURIComponent(fileName)}`
-    );
-    setSelectedFileName(fileName);
-    processData(res.data);
-    setShowHistory(false);
-  };
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
 
-  /* ================= PDF ================= */
-  const downloadPDF = async () => {
-    const canvas = await html2canvas(dashboardRef.current);
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save("feedback-dashboard.pdf");
-  };
-
-  const barData = {
-    labels: Object.keys(data.ratings),
-    datasets: [
-      {
-        label: "Average Rating",
-        data: Object.values(data.ratings),
-        backgroundColor: "#2563eb",
-      },
-    ],
-  };
-
-  const starCounts = [1, 2, 3, 4, 5].map(
-    (star) =>
-      data.allRatings.filter((v) => Math.round(v) === star).length
-  );
-
-  const doughnutData = {
-    labels: ["1★", "2★", "3★", "4★", "5★"],
-    datasets: [
-      {
-        data: starCounts,
-        backgroundColor: [
-          "#0a1f44",
-          "#102a5c",
-          "#1e3a8a",
-          "#2563eb",
-          "#60a5fa",
-        ],
-      },
-    ],
+    const queryStr = Object.entries(newFilters)
+      .filter(([_, v]) => v)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("&");
+    fetchData(queryStr);
   };
 
   return (
-    <div className="main-content">
+    <div className={`main-content ${darkMode ? 'dark-mode' : ''}`}>
       <header className="glass-header">
-        <label className="import-btn">
-          <FiUpload /> Upload CSV
-          <input
-            type="file"
-            hidden
-            onChange={(e) => {
-              setFile(e.target.files[0]);
-              setFileName(e.target.files[0].name);
-            }}
-          />
-        </label>
-
-        {file && (
-          <button className="process-btn" onClick={handleUpload}>
-            <FiCheckCircle /> Process
-          </button>
-        )}
+        <div className="header-left">
+          <h2>EdTech Analytics</h2>
+        </div>
 
         <div className="header-right">
-          <button className="secondary-btn" onClick={loadHistory}>
-            <FiMessageSquare /> History
+          <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? <FiSun /> : <FiMoon />}
           </button>
 
-          <button
-            className="process-btn"
-            onClick={downloadPDF}
-            disabled={data.total === 0}
-          >
-            <FiDownload /> PDF
+          <button className="secondary-btn" onClick={() => navigate("/admin/manage")}>
+            Admin Management
           </button>
         </div>
       </header>
 
-      {uploadMessage && (
-        <div className="message-box">{uploadMessage}</div>
-      )}
-
-      <div ref={dashboardRef}>
-        {data.total === 0 ? (
-          <div className="empty-state">
-            <h3>No data available</h3>
-            <p>Upload a CSV file to generate insights.</p>
-          </div>
-        ) : (
-          <>
-            <h2 className="dashboard-title">
-              Dashboard: {selectedFileName}
-            </h2>
-
-            <div className="grid-charts">
-              <div className="card">
-                <h3>Average Ratings</h3>
-                <div className="chart-wrapper">
-                  <Bar data={barData} />
-                </div>
-              </div>
-
-              <div className="card">
-                <h3>Star Distribution</h3>
-                <div className="chart-wrapper">
-                  <Doughnut data={doughnutData} />
-                </div>
-              </div>
+      <div className="dashboard-layout">
+        <div className="dashboard-main">
+          {summaryStats && (
+            <div className="kpi-grid">
+              <KPICard title="Total Courses" value={courses.length} icon={FiFileText} color="#2563eb" />
+              <KPICard title="Avg Rating" value={summaryStats.avgRating?.[0]?.avg?.toFixed(1) || 0} icon={FiStar} color="#f59e0b" suffix="/5" />
+              <KPICard title="Completion Rate" value={82.5} icon={FiCheckCircle} color="#10b981" suffix="%" />
+              <KPICard title="Positive Sentiment" value={summaryStats.sentimentBreakdown?.find(s => s._id === 'Positive')?.count || 0} icon={FiTrendingUp} color="#8b5cf6" />
             </div>
-          </>
-        )}
-      </div>
+          )}
 
-      {showHistory && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowHistory(false)}
-        >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Upload History</h2>
+          <div className="filter-panel card" style={{ padding: '1rem', display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <select value={filters.courseId} onChange={(e) => handleFilterChange("courseId", e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px' }}>
+              <option value="">All Courses</option>
+              {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+            <select value={filters.instructorId} onChange={(e) => handleFilterChange("instructorId", e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px' }}>
+              <option value="">All Instructors</option>
+              {instructors.map(i => <option key={i._id} value={i._id}>{i.name}</option>)}
+            </select>
+          </div>
 
-            {historyFiles.map((file) => (
-              <div
-                key={file._id}
-                className="history-item"
-                onClick={() => selectFile(file.fileName)}
-              >
-                {file.fileName}
+          <div className="grid-charts">
+            {summaryStats?.sentimentBreakdown && (
+              <div className="card">
+                <h3>Student Sentiment</h3>
+                <div style={{ height: 250 }}>
+                  <Pie
+                    data={{
+                      labels: summaryStats.sentimentBreakdown.map(s => s._id),
+                      datasets: [{
+                        data: summaryStats.sentimentBreakdown.map(s => s.count),
+                        backgroundColor: ["#10b981", "#ef4444", "#94a3b8"],
+                      }],
+                    }}
+                    options={{ responsive: true, maintainAspectRatio: false }}
+                  />
+                </div>
               </div>
-            ))}
+            )}
+
+            {summaryStats?.categoryBreakdown && (
+              <div className="card">
+                <h3>Feedback by Category</h3>
+                <div style={{ height: 250 }}>
+                  <Bar
+                    data={{
+                      labels: summaryStats.categoryBreakdown.map(c => c._id),
+                      datasets: [{
+                        label: "Count",
+                        data: summaryStats.categoryBreakdown.map(c => c.count),
+                        backgroundColor: "#2563eb",
+                      }],
+                    }}
+                    options={{ responsive: true, maintainAspectRatio: false }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        <aside className="dashboard-sidebar">
+          <ActivityFeed activities={activities} />
+        </aside>
+      </div>
     </div>
   );
 };

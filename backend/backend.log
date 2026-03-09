@@ -1,0 +1,10 @@
+
+> backend@1.0.0 start
+> node server.js
+
+[dotenv@17.2.4] injecting env (5) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+Trying to connect to MongoDB...
+✅ Server running on port 5000
+   Mode: development
+MongoDB connected successfully
+✅ Default domains seeded/updated (transport, mess, hostel, sanitation)

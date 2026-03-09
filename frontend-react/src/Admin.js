@@ -74,7 +74,7 @@ const Admin = () => {
       }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
-            Prism Admin
+            CampusLens Admin
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
             Manage users and their uploads

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiGrid, FiMessageSquare, FiShield, FiMenu, FiChevronLeft } from 'react-icons/fi';
 import './Sidebar.css';
-import logo from '../logo.png';
 
 const Sidebar = ({ user }) => {
     const navigate = useNavigate();
@@ -12,19 +11,19 @@ const Sidebar = ({ user }) => {
     const toggleSidebar = () => setCollapsed(!collapsed);
 
     const navItems = [
-        { path: '/dashboard', label: 'Dashboard', icon: <FiGrid /> },
-        { path: '/feedback', label: 'Feedback', icon: <FiMessageSquare /> },
-        { path: '/admin', label: 'Admin', icon: <FiShield />, role: 'admin' },
+        { path: '/admin/dashboard', label: 'Dashboard', icon: <FiGrid /> },
+        { path: '/admin/manage', label: 'Management', icon: <FiShield />, role: 'ADMIN' },
     ];
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <div className="brand" onClick={toggleSidebar}>
+                <div className="brand" onClick={() => navigate('/admin/dashboard')}>
                     <div className="brand-icon">
-                        <img src={logo} alt="PRISM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        {/* Placeholder for EdTech branding */}
+                        <div style={{ width: 30, height: 30, background: 'var(--clr-primary)', borderRadius: 4 }}></div>
                     </div>
-                    {!collapsed && <span className="brand-text">PRISM</span>}
+                    {!collapsed && <span className="brand-text">CampusLens</span>}
                 </div>
                 <button className="collapse-btn" onClick={toggleSidebar}>
                     {collapsed ? <FiMenu /> : <FiChevronLeft />}

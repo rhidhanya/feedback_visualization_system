@@ -1,0 +1,55 @@
+[dotenv@17.2.4] injecting env (5) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Trying to connect to MongoDB...
+MongoDB connected successfully
+
+⚙️ Connected to DB. Running bitsathy seed with real names...
+
+✅ 8 departments seeded
+
+👨‍🏫 Seeding 100 faculties...
+✅ 100 faculties seeded
+
+📚 Seeding subjects and assigning to faculties (1–3 each)...
+✅ 320 subjects seeded, 300 assigned to faculty
+
+👩‍🎓 Seeding 300 students...
+✅ 300 students seeded
+
+🔑 Seeding 8 domain incharges...
+   ✅ sunita.sharma@bitsathy.in (mess) / ID: mess001 / mess123
+   ✅ rajiv.mehta@bitsathy.in (mess) / ID: mess002 / mess123
+   ✅ ravi.kumar@bitsathy.in (transport) / ID: transport001 / transport123
+   ✅ anil.mehta@bitsathy.in (hostel) / ID: hostel001 / hostel123
+   ✅ kavitha.nair@bitsathy.in (hostel) / ID: hostel002 / hostel123
+   ✅ suresh.babu@bitsathy.in (hostel) / ID: hostel003 / hostel123
+   ✅ priya.das@bitsathy.in (sanitation) / ID: sanitation001 / sanitation123
+   ✅ mohan.lal@bitsathy.in (sanitation) / ID: sanitation002 / sanitation123
+
+👤 Seeding Admin, Dean, Principal...
+✅ Admin / dean / principal seeded
+
+🌐 Seeding 4 domain configurations...
+   ✅ transport domain (5 questions)
+   ✅ mess domain (5 questions)
+   ✅ hostel domain (5 questions)
+   ✅ sanitation domain (5 questions)
+
+══════════════════════════════════════════════════════════
+🎉  BITSATHY SEED COMPLETE!
+══════════════════════════════════════════════════════════
+
+📋 Credential Summary:
+┌──────────────────────┬─────────────────────────────────────────┬────────────────┐
+│ Role                 │ Email pattern                           │ Password       │
+├──────────────────────┼─────────────────────────────────────────┼────────────────┤
+│ Students (300)       │ firstname.lastname@bitsathy.in          │ student123     │
+│ Faculty (100)        │ firstname.lastname@bitsathy.in          │ faculty123     │
+│ Mess Incharge (2)    │ sunita.sharma@bitsathy.in etc.          │ mess123        │
+│ Transport Incharge   │ ravi.kumar@bitsathy.in                  │ transport123   │
+│ Hostel Incharge (3)  │ anil.mehta@bitsathy.in etc.             │ hostel123      │
+│ Sanitation Incharge  │ priya.das@bitsathy.in etc.              │ sanitation123  │
+│ Admin                │ admin@bitsathy.in                       │ admin123       │
+│ Dean                 │ dean@bitsathy.in                        │ admin123       │
+│ Principal            │ principal@bitsathy.in                   │ admin123       │
+└──────────────────────┴─────────────────────────────────────────┴────────────────┘
+

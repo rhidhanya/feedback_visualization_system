@@ -21,12 +21,10 @@ const Layout = ({ children }) => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        // Optional: Show toast 
-        alert('Logged out successfully');
-        navigate('/login');
+        navigate('/admin/login');
     };
 
-    if (window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/') {
+    if (window.location.pathname === '/admin/login' || window.location.pathname === '/unauthorized') {
         return <>{children}</>;
     }
 
