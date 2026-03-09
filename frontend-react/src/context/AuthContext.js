@@ -29,10 +29,7 @@ const getPortalContext = () => {
     // Check for login paths to enable session restoration on login screens
     if (path.includes('/login/student') || path.includes('/student-login') || path.includes('/student/login')) return 'student';
     if (path.includes('/admin/login')) return 'admin';
-    if (path.includes('/login/faculty') || path.includes('/faculty/login')) return 'faculty';
-    if (path.includes('/login/principal')) return 'principal';
-    if (path.includes('/login/hod')) return 'hod';
-    if (path.includes('/login/incharge') || path.includes('incharge-login')) return 'incharge';
+    if (path.includes('/login/staff') || path.includes('/staff-login')) return 'staff';
     
     return 'general';
 };
@@ -188,7 +185,7 @@ export const AuthProvider = ({ children }) => {
         return () => {
             if (intervalId) clearInterval(intervalId);
         };
-    }, [token, user]);
+    }, [token, user, loading]);
 
     // ── Generic login (backward-compat) ────────────────────────────────────
     const login = useCallback(async (email, password) => {
@@ -214,119 +211,13 @@ export const AuthProvider = ({ children }) => {
         } finally { setLoading(false); }
     }, []); // eslint-disable-line
 
-    // ── Faculty login ──────────────────────────────────────────────────────
-    const facultyLogin = useCallback(async (email, password, facultyId = '') => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/faculty-login', { email, password, facultyId });
-            persist(data);
-            return { success: true, role: data.user.role };
-        } catch (err) {
-            return { success: false, message: err.response?.data?.message || 'Login failed' };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
 
-    // ── Unified Faculty & HOD login ────────────────────────────────────────
-    const unifiedFacultyHodLogin = useCallback(async (email, password, departmentCode = '') => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/faculty-hod-login', { email, password, departmentCode });
-            persist(data);
-            return { success: true, role: data.user.role };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
 
     // ── Admin login ────────────────────────────────────────────────────────
     const adminLogin = useCallback(async (email, password) => {
         setLoading(true);
         try {
             const { data } = await api.post('/auth/admin-login', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Domain Head login (General) ────────────────────────────────────────
-    const domainHeadLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/domain-head-login', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role, assignedDomain: data.user.assignedDomain };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Transport Incharge login ───────────────────────────────────────────
-    const transportInchargeLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/login/transport-incharge', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role, assignedDomain: data.user.assignedDomain };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Mess Incharge login ────────────────────────────────────────────────
-    const messInchargeLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/login/mess-incharge', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role, assignedDomain: data.user.assignedDomain };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Sanitation Incharge login ──────────────────────────────────────────
-    const sanitationInchargeLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/login/sanitation-incharge', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role, assignedDomain: data.user.assignedDomain };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Hostel Incharge login ──────────────────────────────────────────────
-    const hostelInchargeLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/login/hostel-incharge', { email, password });
-            persist(data);
-            return { success: true, role: data.user.role, assignedDomain: data.user.assignedDomain };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── HOD login ──────────────────────────────────────────────────────────
-    const hodLogin = useCallback(async (email, password, hodId = '', department = '') => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/hod-login', { email, password, hodId, department });
-            persist(data);
-            return { success: true, role: data.user.role, department: data.user.department };
-        } catch (err) {
-            return { success: false, message: getLoginErrorMessage(err) };
-        } finally { setLoading(false); }
-    }, []); // eslint-disable-line
-
-    // ── Dean / Principal login ─────────────────────────────────────────────
-    const monitorLogin = useCallback(async (email, password) => {
-        setLoading(true);
-        try {
-            const { data } = await api.post('/auth/monitor-login', { email, password });
             persist(data);
             return { success: true, role: data.user.role };
         } catch (err) {
@@ -358,9 +249,7 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         user, token, loading,
-        login, studentLogin, facultyLogin, unifiedFacultyHodLogin, adminLogin,
-        domainHeadLogin, transportInchargeLogin, messInchargeLogin, sanitationInchargeLogin, hostelInchargeLogin, hodLogin,
-        monitorLogin,
+        login, studentLogin, adminLogin,
         registerStudent, logout,
         isAdmin, isStudent, isFaculty, isDomainHead, isDean, isPrincipal, isHod: user?.role === 'hod',
     };

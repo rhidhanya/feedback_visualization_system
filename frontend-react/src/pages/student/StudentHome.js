@@ -251,7 +251,7 @@ const StudentHome = () => {
                                         <tr key={fb._id}>
                                             <td style={{ color: 'var(--clr-text-3)', fontSize: '0.8rem' }}>{fb.subjectId?.subjectCode || 'N/A'}</td>
                                             <td style={{ fontWeight: 600 }}>{fb.subjectId?.name || 'Deleted Subject'}</td>
-                                            <td>{fb.subjectId?.facultyName || 'N/A'}</td>
+                                            <td>{fb.subjectId?.faculty?.name || fb.subjectId?.facultyName || 'TBA'}</td>
                                             <td>
                                                 <span className={`rating-chip ${fb.overallRating >= 4 ? 'rating-high' : fb.overallRating >= 2.5 ? 'rating-mid' : 'rating-low'}`}>
                                                     {fb.overallRating?.toFixed(1)} / 5
@@ -298,10 +298,10 @@ const StudentHome = () => {
                                         <div className="subject-code">{subject.subjectCode}</div>
                                         <div className="subject-name" style={{ fontWeight: 700, marginTop: '0.3rem', fontSize: '1rem' }}>{subject.name}</div>
                                         <div className="subject-meta" style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: 'var(--clr-text-2)' }}>
-                                                <FiUser size={12} />
-                                                {subject.faculty?.name || subject.facultyName || '—'}
-                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--clr-text-2)', fontSize: '0.85rem' }}>
+                                                <FiUser size={13} style={{ color: 'var(--clr-primary)' }} />
+                                                {subject.faculty?.name || subject.facultyName || 'TBA'}
+                                            </div>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: 'var(--clr-text-3)' }}>
                                                 <FiClock size={12} />
                                                 {subject.academicYear} &bull; Sem {subject.semester}

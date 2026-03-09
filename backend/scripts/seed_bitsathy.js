@@ -18,6 +18,8 @@ const Department = require('../models/Department');
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 const Domain = require('../models/Domain');
+const Feedback = require('../models/Feedback');
+const DomainFeedback = require('../models/DomainFeedback');
 
 const ACADEMIC_YEAR = '2025-26';
 
@@ -110,29 +112,27 @@ const FACULTY_NAMES = [
 ];
 
 const INCHARGE_NAMES = [
-    // Mess (2)
-    { name: 'Sunita Sharma', domain: 'mess', password: 'mess123', facultyId: 'mess001' },
-    { name: 'Rajiv Mehta', domain: 'mess', password: 'mess123', facultyId: 'mess002' },
+    // Mess (1)
+    { name: 'Mess Manager', domain: 'mess', password: 'mess123', facultyId: 'mess001' },
     // Transport (1)
-    { name: 'Ravi Kumar', domain: 'transport', password: 'transport123', facultyId: 'transport001' },
-    // Hostel (3)
-    { name: 'Anil Mehta', domain: 'hostel', password: 'hostel123', facultyId: 'hostel001' },
-    { name: 'Kavitha Nair', domain: 'hostel', password: 'hostel123', facultyId: 'hostel002' },
-    { name: 'Suresh Babu', domain: 'hostel', password: 'hostel123', facultyId: 'hostel003' },
-    // Sanitation (2)
-    { name: 'Priya Das', domain: 'sanitation', password: 'sanitation123', facultyId: 'sanitation001' },
-    { name: 'Mohan Lal', domain: 'sanitation', password: 'sanitation123', facultyId: 'sanitation002' },
+    { name: 'Transport Head', domain: 'transport', password: 'transport123', facultyId: 'transport001' },
+    // Hostel (1)
+    { name: 'Hostel Manager', domain: 'hostel', password: 'hostel123', facultyId: 'hostel001' },
+    // Sanitation (1)
+    { name: 'Sanitation Head', domain: 'sanitation', password: 'sanitation123', facultyId: 'sanitation001' },
 ];
 
 const DEPT_DEFS = [
-    { name: 'Computer Science Engineering', code: 'CSE', cluster: 'CS Cluster', hodName: 'Dr. Rajesh Kumar' },
-    { name: 'Information Technology', code: 'IT', cluster: 'CS Cluster', hodName: 'Dr. Priya Sharma' },
-    { name: 'Computer Science & Business', code: 'CSBS', cluster: 'CS Cluster', hodName: 'Dr. Karthik Menon' },
-    { name: 'Mechanical Engineering', code: 'MECH', cluster: 'Core Cluster', hodName: 'Dr. Anil Verma' },
-    { name: 'Electronics & Communication', code: 'ECE', cluster: 'Core Cluster', hodName: 'Dr. Subramanian R' },
-    { name: 'Electrical & Electronics', code: 'EEE', cluster: 'Core Cluster', hodName: 'Dr. Lakshmi Nair' },
-    { name: 'Biotechnology', code: 'BIOTECH', cluster: 'Core Cluster', hodName: 'Dr. Shobha Iyer' },
-    { name: 'Agriculture Engineering', code: 'AGRI', cluster: 'Core Cluster', hodName: 'Dr. Venkat Raman' },
+    { name: 'Computer Science Engineering', code: 'CSE', cluster: 'CS Cluster', hodName: 'Dr. Rajesh Kumar', hodId: 'CSH01' },
+    { name: 'Information Technology', code: 'IT', cluster: 'CS Cluster', hodName: 'Dr. Priya Sharma', hodId: 'ITH01' },
+    { name: 'Computer Science & Business', code: 'CSBS', cluster: 'CS Cluster', hodName: 'Dr. Karthik Menon', hodId: 'CSB01' },
+    { name: 'Mechanical Engineering', code: 'MECH', cluster: 'Core Cluster', hodName: 'Dr. Anil Verma', hodId: 'MEH01' },
+    { name: 'Electronics & Communication', code: 'ECE', cluster: 'Core Cluster', hodName: 'Dr. Subramanian R', hodId: 'ECH01' },
+    { name: 'Electrical & Electronics', code: 'EEE', cluster: 'Core Cluster', hodName: 'Dr. Lakshmi Nair', hodId: 'EEH01' },
+    { name: 'Biotechnology', code: 'BIOTECH', cluster: 'Core Cluster', hodName: 'Dr. Shobha Iyer', hodId: 'BTH01' },
+    { name: 'Agriculture Engineering', code: 'AGRI', cluster: 'Core Cluster', hodName: 'Dr. Venkat Raman', hodId: 'AGH01' },
+    { name: 'Computer Technology', code: 'CT', cluster: 'CS Cluster', hodName: 'Dr. Venkatasamy G', hodId: 'CTH01' },
+    { name: 'Information Science & Engineering', code: 'ISE', cluster: 'CS Cluster', hodName: 'Dr. Malarvizhi K', hodId: 'SEH01' },
 ];
 
 const SUBJECT_TEMPLATES = {
@@ -216,6 +216,26 @@ const SUBJECT_TEMPLATES = {
         ['Agri-Business Management', 'Rural Development Technology', 'Climate-Smart Agriculture', 'Vertical Farming Systems', 'Agricultural Policy'],
         ['Project (Agri Phase I)', 'Project (Agri Phase II)', 'Farm Management', 'Organic Farming Technology', 'Industry Attachment Report'],
     ],
+    CT: [
+        ['Analog & Digital Electronics', 'C Programming', 'Mathematics I', 'Physics', 'Engineering Graphics'],
+        ['Data Structures', 'Algorithm Design', 'Mathematics II', 'Computer Architecture', 'Environmental Science'],
+        ['Operating Systems', 'Database Systems', 'Java Programming', 'Software Engineering', 'Discrete Mathematics'],
+        ['Computer Networks', 'Web Technologies', 'Microprocessors', 'Theory of Computation', 'System Software'],
+        ['Cloud Computing', 'Machine Learning', 'AI Principles', 'Cyber Security', 'Mobile App Development'],
+        ['Internet of Things', 'Big Data', 'Network Security', 'Distributed Systems', 'Compiler Design'],
+        ['Data Science', 'Blockchain', 'Deep Learning', 'Software Testing', 'Ethics Guidelines'],
+        ['Project Phase I', 'Project Phase II', 'Startup Management', 'Intellectual Property', 'Internship'],
+    ],
+    ISE: [
+        ['Mathematics I', 'Physics', 'Digital Logic', 'C Programming', 'Engineering Graphics'],
+        ['Mathematics II', 'Data Structures', 'Object Oriented Programming', 'Computer Organization', 'Environmental Science'],
+        ['Database Management', 'Software Engineering', 'Operating Systems', 'Java Programming', 'Discrete Mathematics'],
+        ['Web Programming', 'Computer Networks', 'Theory of Computation', 'Design of Algorithms', 'Information Security'],
+        ['Cloud Architecture', 'Machine Learning Algorithms', 'AI Systems', 'Cryptography', 'Mobile Computing'],
+        ['IoT Systems', 'Data Analytics', 'Advanced Networks', 'Information Retrieval', 'System Design'],
+        ['Data Mining', 'Blockchain Tech', 'Neural Networks', 'Testing & QA', 'Professional Ethics'],
+        ['Project Phase I', 'Project Phase II', 'Innovation Strategy', 'Patent Laws', 'Industry Training'],
+    ],
 };
 
 const DOMAIN_DEFS = [
@@ -262,11 +282,16 @@ const DOMAIN_DEFS = [
  * into an email-safe slug, e.g. "suresh.nair" or "ananya.krishnan"
  */
 function nameToEmailLocal(fullName) {
-    return fullName
+    const parts = fullName
         .toLowerCase()
         .replace(/^(prof\.|dr\.|mr\.|ms\.|mrs\.)\s*/i, '') // strip titles
         .trim()
-        .replace(/\s+/g, '.');                              // spaces → dots
+        .split(/\s+/);
+    
+    if (parts.length >= 2) {
+        return `${parts[0]}.${parts.slice(1).join('')}`;
+    }
+    return parts[0];
 }
 
 const seed = async () => {
@@ -277,6 +302,8 @@ const seed = async () => {
     await Domain.deleteMany({});
     await Department.deleteMany({});
     await Subject.deleteMany({});
+    await Feedback.deleteMany({});
+    await DomainFeedback.deleteMany({});
 
     // ── 1. Departments ──────────────────────────────────────────────
     const deptDocs = await Department.insertMany(
@@ -290,10 +317,27 @@ const seed = async () => {
     const deptIds = Object.values(deptMap).map(d => d._id);
     console.log(`✅ ${deptDocs.length} departments seeded\n`);
 
+    const usedEmails = new Set();
+    console.log('👨‍💼 Seeding HODs for all departments...');
+    for (const d of DEPT_DEFS) {
+        const deptDoc = deptMap[d.code];
+        const emailLocal = `hod.${d.code.toLowerCase()}`;
+        usedEmails.add(emailLocal);
+
+        await User.create({
+            name: d.hodName,
+            email: `${emailLocal}@bitsathy.in`,
+            password: `hod${d.code.toLowerCase()}123`,
+            role: 'hod',
+            department: deptDoc._id,
+            hodId: d.hodId
+        });
+    }
+    console.log(`✅ HODs seeded\n`);
+
     // ── 2. Faculties (100) ──────────────────────────────────────────
     console.log('👨‍🏫 Seeding 100 faculties...');
     const facultyDocs = [];
-    const usedEmails = new Set();
 
     for (let i = 0; i < 100; i++) {
         const fullName = FACULTY_NAMES[i];
@@ -303,6 +347,8 @@ const seed = async () => {
             emailLocal = `${emailLocal}${i + 1}`;
         }
         usedEmails.add(emailLocal);
+        // Assign 10 per department strictly
+        const assignedDeptId = deptIds[i % deptIds.length];
 
         const fac = await User.create({
             name: fullName,
@@ -310,11 +356,19 @@ const seed = async () => {
             password: 'faculty123',
             role: 'faculty',
             facultyId: `FAC${String(i + 1).padStart(3, '0')}`,
-            department: deptIds[i % deptIds.length],
+            department: assignedDeptId,
         });
         facultyDocs.push(fac);
     }
     console.log(`✅ 100 faculties seeded\n`);
+
+    // Group faculties precisely by department for valid subject assignment loop later
+    const facultiesByDept = {};
+    for (const fac of facultyDocs) {
+        const dId = fac.department.toString();
+        if (!facultiesByDept[dId]) facultiesByDept[dId] = [];
+        facultiesByDept[dId].push(fac);
+    }
 
     // ── 3. Subjects & assignment ────────────────────────────────────
     console.log('📚 Seeding subjects and assigning to faculties (1–3 each)...');
@@ -324,14 +378,20 @@ const seed = async () => {
     for (const dept of DEPT_DEFS) {
         const deptDoc = deptMap[dept.code];
         const templates = SUBJECT_TEMPLATES[dept.code];
+        
+        // Grab the valid faculties specifically localized to this department
+        const localFaculties = facultiesByDept[deptDoc._id.toString()] || [];
+
         for (let semIdx = 0; semIdx < 8; semIdx++) {
             for (let subIdx = 0; subIdx < 5; subIdx++) {
                 let facDoc = null;
-                // First 300 subjects assigned evenly (3 per faculty × 100 faculty = 300)
-                if (subjectCount < 300) {
-                    const facultyIndex = Math.floor(subjectCount / 3);
-                    facDoc = facultyDocs[facultyIndex];
+                
+                // Assign a faculty evenly exclusively from this department's pool
+                if (localFaculties.length > 0) {
+                    // Rotate over the available departmental faculties (e.g. 10)
+                    facDoc = localFaculties[subjectCount % localFaculties.length];
                 }
+
                 allSubjects.push({
                     name: templates[semIdx][subIdx],
                     subjectCode: `${dept.code}${semIdx + 1}0${subIdx + 1}`,
@@ -358,12 +418,12 @@ const seed = async () => {
     }
     console.log(`✅ ${subjectDocs.length} subjects seeded, 300 assigned to faculty\n`);
 
-    // ── 4. Students (300) ───────────────────────────────────────────
-    console.log('👩‍🎓 Seeding 300 students...');
+    // ── 4. Students (600) ───────────────────────────────────────────
+    console.log('👩‍🎓 Seeding 600 students (60 per department)...');
     // Shuffle student names so distribution is random
     const shuffled = [...STUDENT_NAMES].sort(() => Math.random() - 0.5);
 
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 600; i++) {
         const fullName = shuffled[i % shuffled.length];
         let emailLocal = nameToEmailLocal(fullName);
         // Handle duplicates
@@ -372,26 +432,26 @@ const seed = async () => {
         }
         usedEmails.add(emailLocal);
 
+        // Assign 60 per department
+        const deptIndex = Math.floor(i / 60);
+
         await User.create({
             name: fullName,
             email: `${emailLocal}@bitsathy.in`,
             password: 'student123',
             role: 'student',
             rollNumber: `STU${String(i + 1).padStart(4, '0')}`,
-            department: deptIds[i % deptIds.length],
-            semester: (i % 8) + 1,
-            residenceType: i % 2 === 0 ? 'hosteller' : 'dayscholar',
+            department: deptIds[deptIndex],
+            semester: Math.floor(Math.random() * 8) + 1,
+            residenceType: Math.random() > 0.5 ? 'hosteller' : 'dayscholar',
         });
     }
-    console.log(`✅ 300 students seeded\n`);
+    console.log(`✅ 600 students seeded\n`);
 
     // ── 5. Incharges ────────────────────────────────────────────────
-    console.log('🔑 Seeding 8 domain incharges...');
+    console.log('🔑 Seeding 4 domain incharges...');
     for (const inc of INCHARGE_NAMES) {
-        let emailLocal = nameToEmailLocal(inc.name);
-        if (usedEmails.has(emailLocal)) {
-            emailLocal = `${emailLocal}.${inc.domain}`;
-        }
+        const emailLocal = inc.domain; // user explicitly asked for transport@, mess@, etc.
         usedEmails.add(emailLocal);
 
         await User.create({
@@ -410,7 +470,7 @@ const seed = async () => {
     console.log('👤 Seeding Admin, Dean, Principal...');
     await User.create({ name: 'System Admin', email: 'admin@bitsathy.in', password: 'admin123', role: 'admin' });
     await User.create({ name: 'Dean', email: 'dean@bitsathy.in', password: 'admin123', role: 'dean' });
-    await User.create({ name: 'Principal', email: 'principal@bitsathy.in', password: 'admin123', role: 'principal' });
+    await User.create({ name: 'Principal', email: 'principal@bitsathy.in', password: 'principal123', role: 'principal' });
     console.log('✅ Admin / dean / principal seeded\n');
 
     // ── 7. Domain configs ───────────────────────────────────────────
@@ -427,7 +487,7 @@ const seed = async () => {
     console.log('┌──────────────────────┬─────────────────────────────────────────┬────────────────┐');
     console.log('│ Role                 │ Email pattern                           │ Password       │');
     console.log('├──────────────────────┼─────────────────────────────────────────┼────────────────┤');
-    console.log('│ Students (300)       │ firstname.lastname@bitsathy.in          │ student123     │');
+    console.log('│ Students (600)       │ firstname.lastname@bitsathy.in          │ student123     │');
     console.log('│ Faculty (100)        │ firstname.lastname@bitsathy.in          │ faculty123     │');
     console.log('│ Mess Incharge (2)    │ sunita.sharma@bitsathy.in etc.          │ mess123        │');
     console.log('│ Transport Incharge   │ ravi.kumar@bitsathy.in                  │ transport123   │');

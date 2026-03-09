@@ -4,19 +4,10 @@ import { FiAlertCircle } from 'react-icons/fi';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Public pages — each role has its own login URL (no role-selection page)
-import StudentLogin from './pages/StudentLogin';
+// Public pages
+import Login from './pages/Login';
 import StudentRegister from './pages/StudentRegister';
 import AdminLogin from './pages/AdminLogin';
-import FacultyLogin from './pages/FacultyLogin';
-import PrincipalLogin from './pages/PrincipalLogin';
-
-// Incharge login pages (one per domain)
-import InchargeLogin from './pages/InchargeLogin';                        // generic fallback
-import TransportInchargeLogin from './pages/TransportInchargeLogin';
-import MessInchargeLogin from './pages/MessInchargeLogin';
-import HostelInchargeLogin from './pages/HostelInchargeLogin';
-import SanitationInchargeLogin from './pages/SanitationInchargeLogin';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -30,8 +21,6 @@ import NotificationCenter from './pages/admin/NotificationCenter';
 import AdminDomainDashboard from './pages/admin/AdminDomainDashboard';
 import HodManagement from './pages/admin/HodManagement';
 
-// Faculty pages
-import FacultyDashboard from './pages/faculty/FacultyDashboard';
 
 // Student pages
 import StudentHome from './pages/student/StudentHome';
@@ -70,29 +59,12 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* ── Public routes: separate URL per role (no role-selection page) ─── */}
-          {/* Student */}
-          <Route path="/login/student" element={<StudentLogin />} />
-          <Route path="/student/login" element={<StudentLogin />} />
+          {/* ── Public routes: single login URL for everyone but admin ─── */}
+          <Route path="/login" element={<Login />} />
           <Route path="/student-register" element={<StudentRegister />} />
-
-          {/* Admin — /admin/login only */}
+          
+          {/* Admin — /admin/login exclusively */}
           <Route path="/admin/login" element={<AdminLogin />} />
-
-          {/* Faculty */}
-          <Route path="/login/faculty" element={<FacultyLogin />} />
-          <Route path="/faculty/login" element={<FacultyLogin />} />
-
-          {/* Principal */}
-          <Route path="/login/principal" element={<PrincipalLogin />} />
-
-          {/* Incharges */}
-          <Route path="/login/incharge" element={<InchargeLogin />} />
-          <Route path="/login/transport-incharge" element={<TransportInchargeLogin />} />
-          <Route path="/login/mess-incharge" element={<MessInchargeLogin />} />
-          <Route path="/login/hostel-incharge" element={<HostelInchargeLogin />} />
-          <Route path="/login/sanitation-incharge" element={<SanitationInchargeLogin />} />
-          <Route path="/login/hod" element={<FacultyLogin />} />
 
           <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -108,8 +80,7 @@ function App() {
           <Route path="/admin/hod-management" element={<ProtectedRoute role="admin"><HodManagement /></ProtectedRoute>} />
           <Route path="/admin/notifications" element={<ProtectedRoute role="admin"><NotificationCenter /></ProtectedRoute>} />
 
-          {/* ── Faculty protected routes ──────────────────── */}
-          <Route path="/faculty/dashboard" element={<ProtectedRoute role="faculty"><FacultyDashboard /></ProtectedRoute>} />
+
 
           {/* ── Student protected routes ──────────────────── */}
           <Route path="/student/home" element={<ProtectedRoute role="student"><StudentHome /></ProtectedRoute>} />
@@ -138,10 +109,9 @@ function App() {
           {/* ── Shared protected routes ───────────── */}
           <Route path="/messages" element={<ProtectedRoute role={['admin', 'principal', 'hod', 'faculty', 'domain_head', 'dean']}><MessagesPage /></ProtectedRoute>} />
 
-          {/* Default: send to student login; each role uses its own URL */}
-          <Route path="/" element={<Navigate to="/login/student" replace />} />
-          <Route path="/login" element={<Navigate to="/login/student" replace />} />
-          <Route path="/*" element={<Navigate to="/login/student" replace />} />
+          {/* Default: send to unified login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
