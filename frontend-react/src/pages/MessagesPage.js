@@ -10,8 +10,8 @@ const MessagesPage = () => {
 
     let availableRoles = [];
     if (user.role === 'principal' || user.role === 'admin') availableRoles = ['hod', 'faculty', 'domain_head'];
-    if (user.role === 'hod') availableRoles = ['faculty'];
-    if (user.role === 'faculty') availableRoles = ['hod'];
+    if (user.role === 'hod') availableRoles = ['faculty', 'principal', 'admin'];
+    if (user.role === 'faculty') availableRoles = ['hod', 'principal'];
     if (user.role === 'domain_head') availableRoles = ['admin', 'principal'];
 
     return (

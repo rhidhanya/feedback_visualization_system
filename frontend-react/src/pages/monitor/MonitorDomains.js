@@ -4,7 +4,7 @@ import { FiInbox } from 'react-icons/fi';
 import MonitorLayout from '../../components/MonitorLayout';
 import api from '../../api/axios';
 
-const CHART_COLORS = ['#57356a', '#725483', '#897098', '#aa98b5', '#cbc1d2'];
+const CHART_COLORS = ['#0ABAB5', '#006994', '#9BC4E2', '#8FE2E1'];
 
 const MonitorDomains = () => {
     const [domains, setDomains] = useState([]);
@@ -77,15 +77,15 @@ const MonitorDomains = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: '1rem' }}>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Avg</div>
-                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--clr-primary)' }}>{detail.avgRating?.toFixed(2)}</div>
+                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#006994' }}>{detail.avgRating?.toFixed(2)}</div>
                             </div>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Total</div>
-                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--clr-accent)' }}>{detail.totalFeedback}</div>
+                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#0ABAB5' }}>{detail.totalFeedback}</div>
                             </div>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Negative</div>
-                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--clr-danger)' }}>{detail.negativeFeedback}</div>
+                                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#dc2626' }}>{detail.negativeFeedback}</div>
                             </div>
                         </div>
                         {detail.questionStats?.map((q, i) => (
@@ -94,7 +94,7 @@ const MonitorDomains = () => {
                                 <strong>{q.avgRating?.toFixed(2)}★</strong>
                             </div>
                         ))}
-                        <button onClick={() => setSelected(null)} className="btn btn-primary" style={{ marginTop: '1rem', background: 'var(--clr-primary)' }}>Close</button>
+                        <button onClick={() => setSelected(null)} className="btn btn-primary" style={{ marginTop: '1rem', background: 'var(--clr-primary)', color: '#fff' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-hover-bg)'; e.currentTarget.style.color = 'var(--clr-hover-text)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'var(--clr-primary)'; e.currentTarget.style.color = '#fff'; }}>Close</button>
                     </div>
                 </div>
             )}

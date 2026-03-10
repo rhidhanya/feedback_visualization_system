@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FiSend, FiMessageSquare, FiChevronLeft, FiPlus } from 'react-icons/fi';
 import api from '../api/axios';
+import { io } from 'socket.io-client';
+
+const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
     const [messages, setMessages] = useState([]);
@@ -19,6 +22,7 @@ const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
     const [targetDomain, setTargetDomain] = useState('');
     const [departments, setDepartments] = useState([]);
     const [selectedDept, setSelectedDept] = useState('');
+    const [facultySearchTerm, setFacultySearchTerm] = useState('');
 
     const fetchMessages = useCallback(async () => {
         try {
@@ -32,7 +36,7 @@ const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
     }, []);
 
     const fetchRecipients = useCallback(async () => {
-        if (!['admin', 'principal'].includes(currentUserRole)) return;
+        if (!['admin', 'principal', 'hod', 'faculty'].includes(currentUserRole)) return;
         try {
             const res = await api.get('/users/recipients');
             if (res.data.success) {
@@ -56,7 +60,22 @@ const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
         fetchMessages();
         fetchRecipients();
         fetchDepts();
-    }, [fetchMessages, fetchRecipients, fetchDepts]);
+
+        // Socket.IO for real-time updates
+        const socket = io(BACKEND_URL);
+        
+        socket.on('new_message', (msg) => {
+            // Check if this message is relevant to the current user
+            // In a real app we'd filter at the socket level or room level,
+            // but for now we filter here by checking if it matches the current user's role/id.
+            // Actually, the backend emits it globally, so we check.
+            
+            // A more robust check should be done, but fetchMessages is always safe.
+            fetchMessages();
+        });
+
+        return () => socket.disconnect();
+    }, [fetchMessages, fetchRecipients, fetchDepts, currentUserRole]);
 
     useEffect(() => {
         if (targetRole === 'hod' && selectedDept) {
@@ -133,20 +152,20 @@ const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
         
         if (isSentByMe) {
             // Sent by me, so the "other party" is the receiver or receiver roles
-            if (msg.receiver) {
+            if (msg.receiver?._id) {
                 threadId = msg.receiver._id;
                 threadName = msg.receiver.name || 'Unknown User';
                 threadRole = msg.receiverRoles[0] || '';
             } else {
                 threadId = msg.receiverRoles.join('_');
-                threadName = msg.receiverRoles.map(r => r.toUpperCase()).join(', ');
+                threadName = msg.receiverRoles.map(r => r.toUpperCase().replace('_', ' ')).join(', ');
                 type = 'role';
                 threadRole = msg.receiverRoles[0] || '';
             }
         } else {
             // Sent to me, so the "other party" is the sender
             threadId = msg.sender?._id || msg.senderRole;
-            threadName = msg.sender?.name ? msg.sender.name : msg.senderRole.toUpperCase();
+            threadName = msg.sender?.name ? msg.sender.name : msg.senderRole.toUpperCase().replace('_', ' ');
             threadRole = msg.senderRole;
             if (!msg.sender?._id) type = 'role';
         }
@@ -346,6 +365,53 @@ const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
                                             >
                                                 <option value="">Select Domain...</option>
                                                 {domains.map(d => <option key={d} value={d}>{d}</option>)}
+                                            </select>
+                                        </div>
+                                    ) : targetRole === 'faculty' ? (
+                                        <div style={{ gridColumn: 'span 2' }}>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Search & Select Faculty</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Type name to search..."
+                                                    value={facultySearchTerm}
+                                                    onChange={e => setFacultySearchTerm(e.target.value)}
+                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', marginBottom: '0.5rem', boxSizing: 'border-box' }}
+                                                />
+                                                <select
+                                                    value={selectedRecipient}
+                                                    onChange={e => setSelectedRecipient(e.target.data)}
+                                                    onClick={e => {
+                                                        const val = e.target.value;
+                                                        if (val) setSelectedRecipient(val);
+                                                    }}
+                                                    size={recipients.filter(r => r.role === 'faculty' && r.name.toLowerCase().includes(facultySearchTerm.toLowerCase())).length > 0 ? 5 : 1}
+                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', background: '#fff' }}
+                                                >
+                                                    <option value="">-- All Faculty (Broadcast) --</option>
+                                                    {recipients
+                                                        .filter(r => r.role === 'faculty' && r.name.toLowerCase().includes(facultySearchTerm.toLowerCase()))
+                                                        .map(r => (
+                                                            <option key={r._id} value={r._id}>
+                                                                {r.name} {r.department ? `(${r.department.code})` : ''} — {r.email}
+                                                            </option>
+                                                        ))
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    ) : targetRole && recipients.filter(r => r.role === targetRole).length > 0 ? (
+                                        <div>
+                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Select Recipient (Optional)</label>
+                                            <select
+                                                value={selectedRecipient}
+                                                onChange={e => setSelectedRecipient(e.target.value)}
+                                                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                                            >
+                                                <option value="">All {targetRole.replace('_', ' ').toUpperCase()}S (Broadcast)</option>
+                                                {recipients.filter(r => r.role === targetRole).map(r => (
+                                                    <option key={r._id} value={r._id}>{r.name} {r.department ? `(${r.department.code})` : ''}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     ) : null}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-    FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiAlertTriangle, FiUser
+    FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiAlertTriangle
 } from 'react-icons/fi';
 import { CampusLensIcon } from '../components/CollegePulseLogo';
 import { useAuth } from '../context/AuthContext';
@@ -86,7 +86,7 @@ const Login = () => {
                                 id="unified-email-input"
                                 value={form.email}
                                 onChange={handleChange('email')}
-                                placeholder="name@bitsathy.in"
+                                placeholder="Enter your email"
                                 required
                                 type="text"
                             />
@@ -135,17 +135,6 @@ const Login = () => {
                     <Link to="/student-register" style={{ fontSize: '0.85rem', color: 'var(--clr-primary)', fontWeight: 600, textDecoration: 'none' }}>
                         New Student? Register Here
                     </Link>
-                </div>
-            </div>
-            
-            {/* Quick Helper Credentials UI Element For Development - Delete Later in Prod */}
-            <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', background: 'rgba(255,255,255,0.95)', padding: '1rem', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', fontSize: '0.75rem', backdropFilter: 'blur(5px)', border: '1px solid #e2e8f0', zIndex: 50, maxWidth: '280px' }}>
-                <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: '#0f172a' }}><FiUser size={12}/> Demo Credentials</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', color: '#475569' }}>
-                    <div><strong>Student:</strong> name@bitsathy.in / student123</div>
-                    <div><strong>HOD:</strong> hod.cse@bitsathy.in / hodcse123</div>
-                    <div><strong>Principal:</strong> principal@bitsathy.in / principal123</div>
-                    <div><strong>Incharge:</strong> transport@bitsathy.in / transport123</div>
                 </div>
             </div>
         </div>

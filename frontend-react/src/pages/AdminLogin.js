@@ -100,18 +100,18 @@ const AdminLogin = () => {
                     <button
                         id="admin-login-btn"
                         type="submit"
-                        className="btn-login-gradient btn-gradient-admin"
+                        className="btn-login-secure"
                         disabled={loading}
                     >
                         {loading
-                            ? <><FiLoader size={16} /> Signing in...</>
-                            : <><FiShield size={16} /> Sign In</>
+                            ? <><FiLoader size={18} className="spinner" /> Signing in...</>
+                            : <>Log In Securely</>
                         }
                     </button>
                 </form>
 
                 <p className="login-admin-only-note">
-                    Admin access only. Students: <a href="/login/student">Student Login</a> · Faculty: <a href="/faculty/login">Faculty Login</a>
+                    Admin access only. Students & Faculty: <a href="/login">User Login</a>
                 </p>
             </div>
         </div>

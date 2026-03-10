@@ -61,22 +61,22 @@ const Admin = () => {
 
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-light)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--clr-bg)' }}>
       {/* Header */}
       <header style={{
-        background: 'var(--card-bg)',
-        borderBottom: '1px solid var(--border-color)',
+        background: 'var(--clr-charcoal)',
+        borderBottom: '1px solid var(--clr-border)',
         padding: '20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
       }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--clr-oat)', margin: 0 }}>
             CampusLens Admin
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
+          <p style={{ color: 'var(--clr-taupe)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
             Manage users and their uploads
           </p>
         </div>
@@ -103,10 +103,10 @@ const Admin = () => {
         }}>
           <div style={{
             padding: '16px',
-            borderBottom: '1px solid var(--border-color)',
-            background: 'var(--bg-light)'
+            borderBottom: '1px solid var(--clr-border)',
+            background: 'rgba(35, 35, 35, 0.05)'
           }}>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: 'var(--text-main)' }}>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: 'var(--clr-charcoal)' }}>
               Users ({usersData.length})
             </h3>
           </div>
@@ -145,11 +145,11 @@ const Admin = () => {
                     width: '100%',
                     padding: '12px 16px',
                     border: 'none',
-                    background: selectedUser?._id === u._id ? 'var(--accent-primary)' : 'transparent',
-                    color: selectedUser?._id === u._id ? 'white' : 'var(--text-main)',
+                    background: selectedUser?._id === u._id ? 'var(--clr-charcoal)' : 'transparent',
+                    color: selectedUser?._id === u._id ? 'var(--clr-oat)' : 'var(--clr-charcoal)',
                     textAlign: 'left',
                     cursor: 'pointer',
-                    borderBottom: '1px solid var(--border-color)',
+                    borderBottom: '1px solid var(--clr-border)',
                     transition: 'all 0.2s ease',
                     display: 'flex',
                     alignItems: 'center',
@@ -234,7 +234,7 @@ const Admin = () => {
                       <span style={{ margin: '0 8px', color: 'var(--border-color)' }}>|</span>
                       Status: <span style={{
                         fontWeight: '600',
-                        color: selectedUser.status === 'active' ? '#10b981' : '#ef4444'
+                        color: selectedUser.status === 'active' ? 'var(--clr-mocha)' : 'var(--clr-taupe)'
                       }}>
                         {selectedUser.status || 'active'}
                       </span>
@@ -278,10 +278,10 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#10b981', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#A39382', marginBottom: '8px' }}>
                         {selectedUser.totalUploads}
                       </div>
-                      <div style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                      <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
                         Total Processed
                       </div>
                     </div>
@@ -293,10 +293,10 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#3b82f6', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#685D54', marginBottom: '8px' }}>
                         {selectedUser.totalDownloads}
                       </div>
-                      <div style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                      <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
                         Downloads
                       </div>
                     </div>
@@ -308,10 +308,10 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#f59e0b', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#A39382', marginBottom: '8px' }}>
                         {selectedUser.loginSessions?.length || 0}
                       </div>
-                      <div style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                      <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
                         Login Sessions
                       </div>
                     </div>
@@ -408,8 +408,8 @@ const Admin = () => {
                       }}
                       style={{
                         padding: '8px 16px',
-                        background: selectedUser.status === 'active' ? '#fef3c7' : '#d1fae5',
-                        color: selectedUser.status === 'active' ? '#92400e' : '#065f46',
+                        background: selectedUser.status === 'active' ? 'var(--clr-mocha)' : 'var(--clr-charcoal)',
+                        color: selectedUser.status === 'active' ? 'var(--clr-oat)' : 'var(--clr-oat)',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
@@ -534,7 +534,7 @@ const Admin = () => {
                                   border: '1px solid var(--border-color)',
                                   textAlign: 'center'
                                 }}>
-                                  <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#10b981' }}>
+                                  <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--clr-taupe)' }}>
                                     ⬆️ {file.uploadCount}
                                   </div>
                                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -587,7 +587,7 @@ const Admin = () => {
                                 background: session.type === 'signup' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-light)',
                                 borderRadius: '8px',
                                 marginBottom: '8px',
-                                border: '1px solid ' + (session.type === 'signup' ? '#10b98133' : 'var(--border-color)'),
+                                border: '1px solid ' + (session.type === 'signup' ? '#A3938233' : 'var(--clr-border)'),
                                 transition: 'all 0.2s ease'
                               }}
                               onMouseEnter={(e) => {
@@ -609,7 +609,7 @@ const Admin = () => {
                                   width: '28px',
                                   height: '28px',
                                   borderRadius: '50%',
-                                  background: session.type === 'signup' ? '#10b981' : '#3b82f6',
+                                  background: session.type === 'signup' ? 'var(--clr-taupe)' : 'var(--clr-mocha)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',

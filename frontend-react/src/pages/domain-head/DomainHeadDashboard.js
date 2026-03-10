@@ -77,12 +77,21 @@ const DomainHeadDashboard = () => {
     const an = analytics || {};
     const questionChart = an.questionStats?.length ? {
         labels: an.questionStats.map(q => q.question?.slice(0, 35) + (q.question?.length > 35 ? '…' : '')),
-        datasets: [{ label: 'Avg Rating', data: an.questionStats.map(q => q.avgRating), backgroundColor: 'var(--clr-primary)', borderRadius: 5 }],
+        datasets: [{ label: 'Avg Rating', data: an.questionStats.map(q => q.avgRating), backgroundColor: '#0ABAB5', borderRadius: 8, barThickness: 20 }],
     } : null;
 
     const trendChart = an.semesterTrend?.length ? {
         labels: an.semesterTrend.map(t => `Sem ${t.semester}`),
-        datasets: [{ label: 'Avg Rating', data: an.semesterTrend.map(t => t.avgRating), borderColor: '#5d3a6f', backgroundColor: 'rgba(93, 58, 111, 0.1)', fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: '#5d3a6f' }],
+        datasets: [{ 
+            label: 'Avg Rating', 
+            data: an.semesterTrend.map(t => t.avgRating), 
+            borderColor: '#006994', 
+            backgroundColor: 'rgba(0, 105, 148, 0.1)', 
+            fill: true, 
+            tension: 0.4, 
+            pointRadius: 5, 
+            pointBackgroundColor: '#006994' 
+        }],
     } : null;
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -97,10 +106,10 @@ const DomainHeadDashboard = () => {
 
             {/* KPIs */}
             <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
-                <KPI icon={<FiMessageSquare size={18} />} label="Total Feedback" value={an.totalFeedback ?? 0} color="var(--clr-primary)" />
-                <KPI icon={<FiStar size={18} />} label="Avg Rating" value={`${an.avgRating?.toFixed(2) ?? '—'} / 5`} color="var(--clr-accent)" />
+                <KPI icon={<FiMessageSquare size={18} />} label="Total Feedback" value={an.totalFeedback ?? 0} color="#0ABAB5" />
+                <KPI icon={<FiStar size={18} />} label="Avg Rating" value={`${an.avgRating?.toFixed(2) ?? '—'} / 5`} color="#006994" />
                 <KPI icon={<FiAlertTriangle size={18} />} label="Negative (≤2★)" value={an.negativeFeedback ?? 0} color="#dc2626" />
-                <KPI icon={<FiBell size={18} />} label="Unread Alerts" value={unreadCount} color="var(--clr-accent)" />
+                <KPI icon={<FiBell size={18} />} label="Unread Alerts" value={unreadCount} color="#9BC4E2" />
             </div>
 
             {/* Charts */}
@@ -234,7 +243,7 @@ const KPI = ({ icon, label, value, color }) => (
 );
 
 const StatusBadge = ({ status }) => {
-    const colors = { Pending: 'var(--clr-primary)', 'In Progress': 'var(--clr-accent)', Rectified: 'var(--clr-success)', Closed: 'var(--clr-text-3)' };
+    const colors = { Pending: '#0ABAB5', 'In Progress': '#9BC4E2', Rectified: '#006994', Closed: '#94a3b8' };
     return <span style={{ background: `${colors[status]}18`, color: colors[status], padding: '2px 8px', borderRadius: 12, fontSize: '0.72rem', fontWeight: 600 }}>{status}</span>;
 };
 

@@ -30,14 +30,15 @@ const TICK = { color: TEXT, font: { family: 'Inter', size: 11 } };
 const LEG = { color: TEXT, font: { family: 'Inter', size: 12 }, padding: 14 };
 
 
-// Strict palette – variations of the requested purple theme
-const ACCENT = ['#5d3a6f', '#725483', '#897098', '#aa98b5', '#cbc1d2'];
+// Strict palette – consistent colors
+const CHART_COLORS = ['#0ABAB5', '#006994', '#9BC4E2', '#8FE2E1'];
+const ACCENT = CHART_COLORS;
 
 const performanceBadge = (r) => {
     if (!r) return { label: '—', color: '#64748b' };
-    if (r >= 4.5) return { label: 'Excellent', color: '#2E7D32' };
-    if (r >= 3.5) return { label: 'Good', color: '#5d3a6f' };
-    if (r >= 2.5) return { label: 'Average', color: '#725483' };
+    if (r >= 4.5) return { label: 'Excellent', color: '#1E4DB7' };
+    if (r >= 3.5) return { label: 'Good', color: '#1C8C8C' };
+    if (r >= 2.5) return { label: 'Average', color: '#6E8CA8' };
     return { label: 'Needs Attention', color: '#E53935' };
 };
 
@@ -216,11 +217,12 @@ const FacultyDetailView = ({ faculty, detail, filterSem, setFilterSem }) => {
         labels: trend.map(t => t.label || `Sem ${t.semester}`),
         datasets: [{
             label: 'Avg Rating',
-            data: trend.map(t => t.avgRating),
-            borderColor: '#725483',
-            backgroundColor: 'rgba(114, 84, 131, 0.08)',
+            data: trend.map(t => t.avgRating || 0),
+            borderColor: '#0ABAB5',
+            backgroundColor: 'rgba(10, 186, 181, 0.1)',
             fill: true, tension: 0.4,
-            pointRadius: 5, pointBackgroundColor: '#725483',
+            pointRadius: 5, pointBackgroundColor: '#0ABAB5',
+            pointHoverRadius: 7
         }],
     };
 
@@ -229,9 +231,10 @@ const FacultyDetailView = ({ faculty, detail, filterSem, setFilterSem }) => {
         labels: filteredSubjects.map(s => s.subjectCode || s.name?.slice(0, 18)),
         datasets: [{
             label: 'Avg Rating',
-            data: filteredSubjects.map(s => s.avgRating),
+            data: filteredSubjects.map(s => s.avgRating || 0),
             backgroundColor: filteredSubjects.map((_, i) => ACCENT[i % ACCENT.length]),
-            borderRadius: 6,
+            borderRadius: 8,
+            barThickness: 20
         }],
     };
 

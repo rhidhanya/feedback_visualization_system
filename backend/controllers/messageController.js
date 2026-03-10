@@ -38,28 +38,31 @@ exports.getMessages = async (req, res, next) => {
         const userRole = req.user.role;
         const userDomain = req.user.assignedDomain;
 
-        let query = {
-            $or: [
-                { sender: req.user.userId }, // messages I sent
-                { receiver: req.user.userId }, // messages sent specifically to me
-                { 
-                    receiverRoles: userRole,
-                    receiver: { $exists: false }, // role-based broadcast (not targeted)
-                    // If user is faculty, only show messages from HOD or Principal
-                    ...(userRole === "faculty" ? { senderRole: { $in: ["hod", "principal"] } } : {})
-                }
-            ]
-        };
+        let orConditions = [
+            { sender: req.user.userId }, // messages I sent
+            { receiver: req.user.userId }, // messages sent specifically to me
+            { 
+                receiverRoles: userRole,
+                $or: [
+                    { receiver: { $exists: false } },
+                    { receiver: null }
+                ],
+                // If user is faculty, only show messages from HOD or Principal
+                ...(userRole === "faculty" ? { senderRole: { $in: ["hod", "principal"] } } : {})
+            }
+        ];
 
-        // If user is domain_head, only see messages targeted to their domain (or general)
+        // If user is domain_head, ensure they see messages targeted to their specific domain
         if (userRole === "domain_head" && userDomain) {
-            query.$or[1] = {
+            orConditions.push({
                 $and: [
                     { receiverRoles: "domain_head" },
-                    { $or: [{ domainContext: userDomain.toLowerCase() }, { domainContext: { $exists: false } }, { domainContext: "" }] }
+                    { domainContext: userDomain.toLowerCase() }
                 ]
-            };
+            });
         }
+
+        let query = { $or: orConditions };
 
         const messages = await Message.find(query)
             .populate("sender", "name email")
@@ -88,6 +91,46 @@ exports.markAsRead = async (req, res, next) => {
         }
 
         res.json({ success: true, data: message });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Get unread count
+exports.getUnreadCount = async (req, res, next) => {
+    try {
+        const userRole = req.user.role;
+        const userDomain = req.user.assignedDomain;
+
+        let orConditions = [
+            { receiver: req.user.userId },
+            { 
+                receiverRoles: userRole,
+                $or: [
+                    { receiver: { $exists: false } },
+                    { receiver: null }
+                ],
+                ...(userRole === "faculty" ? { senderRole: { $in: ["hod", "principal"] } } : {})
+            }
+        ];
+
+        if (userRole === "domain_head" && userDomain) {
+            orConditions.push({
+                $and: [
+                    { receiverRoles: "domain_head" },
+                    { domainContext: userDomain.toLowerCase() }
+                ]
+            });
+        }
+
+        const query = { 
+            $or: orConditions,
+            readBy: { $ne: req.user.userId },
+            sender: { $ne: req.user.userId } // Don't count own messages as unread
+        };
+
+        const count = await Message.countDocuments(query);
+        res.json({ success: true, count });
     } catch (err) {
         next(err);
     }

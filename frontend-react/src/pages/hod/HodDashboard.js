@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
-import { FiTrendingUp, FiCheckCircle, FiAlertCircle, FiMessageSquare } from 'react-icons/fi';
+import { FiTrendingUp, FiCheckCircle, FiAlertCircle, FiMessageSquare, FiInbox } from 'react-icons/fi';
 import { Line, Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -33,6 +33,7 @@ const HodDashboard = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showMessages, setShowMessages] = useState(false);
+    const [viewMode, setViewMode] = useState('overview'); // 'overview', 'high_performing', 'areas_improvement'
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -57,11 +58,13 @@ const HodDashboard = () => {
         labels: data?.trend?.map(t => `Semester ${t.semester}`) || [],
         datasets: [{
             label: 'Avg Rating',
-            data: data?.trend?.map(t => t.avgRating) || [],
-            borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            data: data?.trend?.map(t => t.avgRating || 0) || [],
+            borderColor: '#A39382', // Taupe
+            backgroundColor: 'rgba(163, 147, 130, 0.1)',
             tension: 0.4,
-            fill: true
+            fill: true,
+            pointRadius: 5,
+            pointBackgroundColor: '#232323'
         }]
     };
 
@@ -70,11 +73,13 @@ const HodDashboard = () => {
         labels: data?.yearlyTrend?.map(t => t.year) || [],
         datasets: [{
             label: 'Avg Rating',
-            data: data?.yearlyTrend?.map(t => t.avgRating) || [],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            data: data?.yearlyTrend?.map(t => t.avgRating || 0) || [],
+            borderColor: '#685D54', // Mocha
+            backgroundColor: 'rgba(104, 93, 84, 0.1)',
             tension: 0.4,
-            fill: true
+            fill: true,
+            pointRadius: 5,
+            pointBackgroundColor: '#232323'
         }]
     };
 
@@ -83,9 +88,10 @@ const HodDashboard = () => {
         labels: data?.subjectComparison?.map(s => s.name) || [],
         datasets: [{
             label: 'Avg Rating',
-            data: data?.subjectComparison?.map(s => s.avgRating) || [],
-            backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981'],
-            borderRadius: 8
+            data: data?.subjectComparison?.map(s => s.avgRating || 0) || [],
+            backgroundColor: ['#A39382', '#685D54', '#8C7E72'],
+            borderRadius: 4,
+            barThickness: 18
         }]
     };
 
@@ -94,9 +100,10 @@ const HodDashboard = () => {
         labels: data?.topFaculty?.map(f => f._id) || [],
         datasets: [{
             label: 'Avg Rating',
-            data: data?.topFaculty?.map(f => f.avgRating) || [],
-            backgroundColor: '#8b5cf6',
-            borderRadius: 8
+            data: data?.topFaculty?.map(f => f.avgRating || 0) || [],
+            backgroundColor: '#A39382', // Taupe
+            borderRadius: 8,
+            barThickness: 20
         }]
     };
 
@@ -104,10 +111,10 @@ const HodDashboard = () => {
 
     return (
         <AdminLayout title={`HOD Dashboard - ${user?.department?.name || 'Department'}`}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+            <div className="dash-header">
                 <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Welcome, {user?.name}</h1>
-                    <p style={{ color: 'var(--clr-text-2)' }}>Performance insights for {user?.department?.name}</p>
+                    <h2>Welcome, {user?.name}</h2>
+                    <p>Performance insights for {user?.department?.name}</p>
                 </div>
                 
                 <button 
@@ -120,98 +127,101 @@ const HodDashboard = () => {
             </div>
 
             {/* Department KPIs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                <div className="card-premium">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ padding: '12px', background: 'var(--clr-primary-lt)', borderRadius: '12px', color: 'var(--clr-primary)' }}>
-                            <FiTrendingUp size={24} />
-                        </div>
-                        <div>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--clr-text-2)', fontWeight: '600' }}>Average Department Rating</p>
-                            <h3 style={{ margin: 0, fontSize: '1.8rem', fontWeight: '800' }}>{overallAvg} / 5.0</h3>
-                        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
+                    <div className="icon-box" style={{ background: 'rgba(163, 147, 130, 0.1)', color: 'var(--clr-text-2)', border: '1px solid var(--clr-border)' }}>
+                        <FiTrendingUp size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Avg Department Rating</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{overallAvg} / 5.0</div>
                     </div>
                 </div>
-                <div className="card-premium">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', color: '#10b981' }}>
-                            <FiCheckCircle size={24} />
-                        </div>
-                        <div>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--clr-text-2)', fontWeight: '600' }}>Total Feedback Responses</p>
-                            <h3 style={{ margin: 0, fontSize: '1.8rem', fontWeight: '800' }}>
-                                {data?.trend?.reduce((a, b) => a + b.total, 0) || 0}
-                            </h3>
+                <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
+                    <div className="icon-box" style={{ background: 'rgba(104, 93, 84, 0.15)', color: 'var(--clr-text-2)', border: '1px solid var(--clr-border)' }}>
+                        <FiCheckCircle size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Total Responses</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>
+                            {data?.trend?.reduce((a, b) => a + b.total, 0) || 0}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Charts Row 1 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                <div className="card-premium">
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem' }}>Semester Wise Trend</h3>
-                    <div style={{ height: '300px' }}>
-                        <Line data={trendData} options={{ maintainAspectRatio: false, scales: { y: { min: 0, max: 5, beginAtZero: true } } }} />
-                    </div>
-                </div>
-                <div className="card-premium">
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem' }}>Year Wise Trend</h3>
-                    <div style={{ height: '300px' }}>
-                        <Line data={yearlyTrendData} options={{ maintainAspectRatio: false, scales: { y: { min: 0, max: 5, beginAtZero: true } } }} />
-                    </div>
-                </div>
+            {/* View Selection Tab */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                {[
+                    { id: 'overview', label: 'Domain Overview', icon: null },
+                    { id: 'high_performing', label: 'High Performing Subjects', icon: <FiCheckCircle /> },
+                    { id: 'areas_improvement', label: 'Areas of Improvement', icon: <FiAlertCircle /> }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setViewMode(tab.id)}
+                        className={`btn ${viewMode === tab.id ? 'btn-primary' : 'btn-ghost'}`}
+                    >
+                        {tab.icon} {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Charts Row 2 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                <div className="card-premium">
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem' }}>Subject Rating Comparison (Top 3)</h3>
-                    <div style={{ height: '300px' }}>
-                        <Bar data={subjectComparisonData} options={{ maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5, beginAtZero: true } } }} />
+            {viewMode === 'overview' ? (
+                <>
+                    {/* Charts Row 1 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div className="chart-card">
+                            <h3>Semester Wise Trend</h3>
+                            <div style={{ height: '300px' }}>
+                                {data?.trend?.length > 0 ? (
+                                    <Line data={trendData} options={{ maintainAspectRatio: false, scales: { x: { ticks: { color: '#E5DED2' } }, y: { min: 0, max: 5, ticks: { color: '#E5DED2' }, grid: { color: 'rgba(104, 93, 84, 0.2)' } } }, plugins: { legend: { labels: { color: '#E5DED2' } } } }} />
+                                ) : <NoData />}
+                            </div>
+                        </div>
+                        <div className="chart-card">
+                            <h3>Year Wise Trend</h3>
+                            <div style={{ height: '300px' }}>
+                                {data?.yearlyTrend?.length > 0 ? (
+                                    <Line data={yearlyTrendData} options={{ maintainAspectRatio: false, scales: { x: { ticks: { color: '#E5DED2' } }, y: { min: 0, max: 5, ticks: { color: '#E5DED2' }, grid: { color: 'rgba(104, 93, 84, 0.2)' } } }, plugins: { legend: { labels: { color: '#E5DED2' } } } }} />
+                                ) : <NoData />}
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div className="card-premium">
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.5rem' }}>Top 5 Performing Faculties</h3>
-                    <div style={{ height: '300px' }}>
-                        <Bar data={topFacultyData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 5, beginAtZero: true } } }} />
-                    </div>
-                </div>
-            </div>
 
-            {/* Lists */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 1fr', gap: '1.5rem' }}>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', gridColumn: 'span 2' }}>
-                    <div className="card-premium">
-                        <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FiCheckCircle color="#10b981" /> High Performing Subjects
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {data?.highestRatedSubjects?.slice(0, 5).map(s => (
-                                <div key={s._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{s.name}</div>
-                                    <span className="badge badge-success">{s.avgRating?.toFixed(2) || '0.00'}</span>
-                                </div>
-                            ))}
+                    {/* Charts Row 2 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div className="chart-card">
+                            <h3>Subject Rating Comparison (Top 3)</h3>
+                            <div style={{ height: '300px' }}>
+                                {data?.subjectComparison?.length > 0 ? (
+                                    <Bar data={subjectComparisonData} options={{ maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5, ticks: { color: '#E5DED2' }, grid: { color: 'rgba(104, 93, 84, 0.2)' } }, y: { ticks: { color: '#E5DED2' } } } }} />
+                                ) : <NoData />}
+                            </div>
+                        </div>
+                        <div className="chart-card">
+                            <h3>Top 5 Performing Faculties</h3>
+                            <div style={{ height: '300px' }}>
+                                {data?.topFaculty?.length > 0 ? (
+                                    <Bar data={topFacultyData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#E5DED2' } }, y: { min: 0, max: 5, ticks: { color: '#E5DED2' }, grid: { color: 'rgba(104, 93, 84, 0.2)' } } } }} />
+                                ) : <NoData />}
+                            </div>
                         </div>
                     </div>
-                    
-                    <div className="card-premium">
-                        <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <FiAlertCircle color="#ef4444" /> Areas of Improvement
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {data?.lowestRatedSubjects?.slice(0, 5).map(s => (
-                                <div key={s._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{s.name}</div>
-                                    <span className="badge badge-danger">{s.avgRating?.toFixed(2) || '0.00'}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                </>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {viewMode === 'high_performing' ? (
+                        data?.highestRatedSubjects?.length > 0 ? (
+                            data.highestRatedSubjects.map(s => <SubjectCard key={s._id} subject={s} type="high" />)
+                        ) : <NoData />
+                    ) : (
+                        data?.lowestRatedSubjects?.length > 0 ? (
+                            data.lowestRatedSubjects.map(s => <SubjectCard key={s._id} subject={s} type="low" />)
+                        ) : <NoData />
+                    )}
                 </div>
-            </div>
+            )}
 
             <MessageModal 
                 isOpen={showMessages} 
@@ -222,5 +232,34 @@ const HodDashboard = () => {
         </AdminLayout>
     );
 };
+
+const SubjectCard = ({ subject, type }) => (
+    <div className="card-premium" style={{ borderLeft: `4px solid ${type === 'high' ? '#A39382' : '#685D54'}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{subject.name}</h4>
+            <span className={`badge ${type === 'high' ? 'badge-primary' : 'badge-danger'}`} style={{ padding: '0.4rem 0.75rem' }}>
+                {subject.avgRating?.toFixed(2)}
+            </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--clr-text-2)', fontSize: '0.85rem' }}>
+                <span style={{ fontWeight: 800, color: 'var(--clr-text-3)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Faculty</span> {subject.facultyName || 'TBA'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--clr-text-2)', fontSize: '0.85rem' }}>
+                <span style={{ fontWeight: 800, color: 'var(--clr-text-3)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Semester</span> {subject.semester}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--clr-text-3)', fontSize: '0.75rem', marginTop: '4px' }}>
+                <span>Code: {subject.code}</span>
+            </div>
+        </div>
+    </div>
+);
+
+const NoData = () => (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-text-3)', padding: '2rem' }}>
+        <FiInbox size={32} style={{ marginBottom: '0.75rem', color: 'var(--clr-border)' }} />
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>No Data Found</span>
+    </div>
+);
 
 export default HodDashboard;

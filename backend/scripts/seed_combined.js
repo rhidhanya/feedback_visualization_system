@@ -36,14 +36,14 @@ const ACADEMIC_YEAR = '2025-26';
 // ═══════════════════════════════════════════════════════════════════
 
 const DEPT_DEFS = [
-    { name: 'Computer Science Engineering', code: 'CSE', cluster: 'CS Cluster', hodName: 'Dr. Rajesh Kumar' },
-    { name: 'Information Technology', code: 'IT', cluster: 'CS Cluster', hodName: 'Dr. Priya Sharma' },
-    { name: 'Computer Science & Business', code: 'CSBS', cluster: 'CS Cluster', hodName: 'Dr. Karthik Menon' },
-    { name: 'Mechanical Engineering', code: 'MECH', cluster: 'Core Cluster', hodName: 'Dr. Anil Verma' },
-    { name: 'Electronics & Communication', code: 'ECE', cluster: 'Core Cluster', hodName: 'Dr. Subramanian R' },
-    { name: 'Electrical & Electronics', code: 'EEE', cluster: 'Core Cluster', hodName: 'Dr. Lakshmi Nair' },
-    { name: 'Biotechnology', code: 'BIOTECH', cluster: 'Core Cluster', hodName: 'Dr. Shobha Iyer' },
-    { name: 'Agriculture Engineering', code: 'AGRI', cluster: 'Core Cluster', hodName: 'Dr. Venkat Raman' },
+    { name: 'Computer Science Engineering', code: 'CSE', cluster: 'CS Cluster', hodName: 'Dr. Rajesh Kumar', hodEmail: 'hod.cse@bitsathy.in' },
+    { name: 'Information Technology', code: 'IT', cluster: 'CS Cluster', hodName: 'Dr. Priya Sharma', hodEmail: 'hod.it@bitsathy.in' },
+    { name: 'Computer Science & Business', code: 'CSBS', cluster: 'CS Cluster', hodName: 'Dr. Karthik Menon', hodEmail: 'hod.csbs@bitsathy.in' },
+    { name: 'Mechanical Engineering', code: 'MECH', cluster: 'Core Cluster', hodName: 'Dr. Anil Verma', hodEmail: 'hod.mech@bitsathy.in' },
+    { name: 'Electronics & Communication', code: 'ECE', cluster: 'Core Cluster', hodName: 'Dr. Subramanian R', hodEmail: 'hod.ece@bitsathy.in' },
+    { name: 'Electrical & Electronics', code: 'EEE', cluster: 'Core Cluster', hodName: 'Dr. Lakshmi Nair', hodEmail: 'hod.eee@bitsathy.in' },
+    { name: 'Biotechnology', code: 'BIOTECH', cluster: 'Core Cluster', hodName: 'Dr. Shobha Iyer', hodEmail: 'hod.biotech@bitsathy.in' },
+    { name: 'Agriculture Engineering', code: 'AGRI', cluster: 'Core Cluster', hodName: 'Dr. Venkat Raman', hodEmail: 'hod.agri@bitsathy.in' },
 ];
 
 // ── Faculty (8 per department = 64 total) ─────────────────────────
@@ -348,10 +348,10 @@ const seed = async () => {
 
     // ── 4. DEAN & PRINCIPAL ────────────────────────────────────────
     console.log('🎓 Seeding Dean & Principal...');
-    await User.create({ name: 'Dr. Amitabh Sharma', email: 'dean@bitsathy.in', password: 'admin123', role: 'dean' });
-    await User.create({ name: 'Dr. Rajeshwar Rao', email: 'principal@bitsathy.in', password: 'admin123', role: 'principal' });
+    await User.create({ name: 'Dean', email: 'dean@bitsathy.in', password: 'admin123', role: 'dean' });
+    await User.create({ name: 'Principal', email: 'principal@bitsathy.in', password: 'principal123', role: 'principal' });
     console.log('   ✅ dean@bitsathy.in / admin123');
-    console.log('   ✅ principal@bitsathy.in / admin123\n');
+    console.log('   ✅ principal@bitsathy.in / principal123\n');
 
     // ── 5. DOMAIN HEADS (4 incharges) ─────────────────────────────
     console.log('🔑 Seeding 4 domain incharges...');
@@ -364,6 +364,21 @@ const seed = async () => {
     for (const inc of incharges) {
         await User.create({ ...inc, password: 'incharge123', role: 'domain_head' });
         console.log(`   ✅ ${inc.email} (${inc.assignedDomain}) / incharge123`);
+    }
+    console.log();
+
+    // ── 5.5. HOD USERS ─────────────────────────────────────────────
+    console.log('👷 Seeding 8 HOD users...');
+    for (const d of DEPT_DEFS) {
+        await User.create({
+            name: d.hodName,
+            email: d.hodEmail,
+            password: 'hod123',
+            role: 'hod',
+            department: deptMap[d.code]._id,
+            hodId: `${d.code}H01`
+        });
+        console.log(`   ✅ ${d.hodEmail} / hod123`);
     }
     console.log();
 
@@ -405,9 +420,9 @@ const seed = async () => {
             const sem = (i % 8) + 1;
             const firstName = rand(FIRST_NAMES);
             const lastName = rand(LAST_NAMES);
-            let email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@student.edu`;
+            let email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@bitsathy.in`;
             let suffix = 0;
-            while (usedEmails.has(email)) { suffix++; email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}_${suffix}@student.edu`; }
+            while (usedEmails.has(email)) { suffix++; email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}_${suffix}@bitsathy.in`; }
             usedEmails.add(email);
 
             await User.create({

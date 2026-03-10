@@ -6,6 +6,7 @@ exports.verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        console.log(`[Auth] No token provided for ${req.originalUrl}`);
         return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
 
@@ -16,6 +17,7 @@ exports.verifyToken = (req, res, next) => {
         req.user = { ...decoded, id: decoded.userId }; // Ensure both id and userId are available
         next();
     } catch (err) {
+        console.log(`[Auth] Token verification failed for ${req.originalUrl}: ${err.message}`);
         if (err.name === "TokenExpiredError") {
             return res.status(401).json({ success: false, message: "Token expired. Please log in again." });
         }

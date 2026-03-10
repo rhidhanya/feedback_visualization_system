@@ -3,8 +3,8 @@
     padding: 1.5rem;
     border-radius: 12px;
     margin-bottom: 2rem;
-    border: 1px solid #dcd4e0;
-    box-shadow: 0 2px 8px rgba(93, 58, 111, 0.06);
+    border: 1px solid var(--clr-border);
+    box-shadow: 0 2px 8px rgba(27, 49, 76, 0.06);
 }
 
 .search-box {
@@ -17,21 +17,21 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #cbc1d2;
+    color: var(--clr-text-3);
 }
 
 .search-box input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
-    border: 1px solid #dcd4e0;
+    border: 1px solid var(--clr-border);
     border-radius: 8px;
     outline: none;
     transition: border-color 0.2s;
 }
 
 .search-box input:focus {
-    border-color: #5d3a6f;
-    box-shadow: 0 0 0 3px rgba(93, 58, 111, 0.1);
+    border-color: var(--clr-primary);
+    box-shadow: 0 0 0 3px rgba(27, 49, 76, 0.1);
 }
 
 .filter-group {
@@ -62,7 +62,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #cbc1d2;
+    color: var(--clr-text-3);
 }
 
 .filter-item input[type="date"],
@@ -78,6 +78,6 @@
 
 .filter-item input[type="date"]:focus,
 .filter-item select:focus {
-    border-color: #5d3a6f;
-    box-shadow: 0 0 0 3px rgba(93, 58, 111, 0.1);
+    border-color: var(--clr-primary);
+    box-shadow: 0 0 0 3px rgba(27, 49, 76, 0.1);
 }

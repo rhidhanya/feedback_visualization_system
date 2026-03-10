@@ -7,11 +7,10 @@ const DOMAIN_OPTIONS = ['transport', 'mess', 'hostel', 'sanitation'];
 
 const DomainHeadManagement = () => {
     const [heads, setHeads] = useState([]);
-    const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', password: '', assignedDomain: '', department: '', contact: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', assignedDomain: '' });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
     const [toast, setToast] = useState(null);
@@ -22,19 +21,15 @@ const DomainHeadManagement = () => {
     const fetchHeads = useCallback(async () => {
         setLoading(true);
         try {
-            const [usersRes, deptsRes] = await Promise.all([
-                api.get('/users?role=domain_head'),
-                api.get('/departments')
-            ]);
-            setHeads(usersRes.data.data || []);
-            setDepartments(deptsRes.data.data || []);
+            const res = await api.get('/users?role=domain_head');
+            setHeads(res.data.data || []);
         } catch { showToast('error', 'Failed to load domain heads'); } finally { setLoading(false); }
     }, []);
 
     useEffect(() => { fetchHeads(); }, [fetchHeads]);
 
-    const openAdd = () => { setEditing(null); setForm({ name: '', email: '', password: '', assignedDomain: '', department: '', contact: '' }); setFormError(''); setModalOpen(true); };
-    const openEdit = (h) => { setEditing(h); setForm({ name: h.name, email: h.email, password: '', assignedDomain: h.assignedDomain || '', department: h.department?._id || h.department || '', contact: h.contact || '' }); setFormError(''); setModalOpen(true); };
+    const openAdd = () => { setEditing(null); setForm({ name: '', email: '', password: '', assignedDomain: '' }); setFormError(''); setModalOpen(true); };
+    const openEdit = (h) => { setEditing(h); setForm({ name: h.name, email: h.email, password: '', assignedDomain: h.assignedDomain || '' }); setFormError(''); setModalOpen(true); };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -49,8 +44,6 @@ const DomainHeadManagement = () => {
                 email: form.email, 
                 role: 'domain_head', 
                 assignedDomain: form.assignedDomain,
-                department: form.department,
-                contact: form.contact
             };
             if (form.password) payload.password = form.password;
 
@@ -86,43 +79,43 @@ const DomainHeadManagement = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className="page-header">
                 <div>
-                    <h2 style={{ fontSize: '1.15rem' }}>Domain Heads</h2>
-                    <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Manage domain head accounts and assignments</p>
+                    <h2>Domain Heads</h2>
+                    <p>Manage domain head accounts and assignments</p>
                 </div>
-                <button className="btn btn-primary" onClick={openAdd} style={{ background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button className="btn btn-primary" onClick={openAdd}>
                     <FiUserPlus size={14} /> Add Domain Head
                 </button>
             </div>
 
-            <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead><tr style={{ background: '#f8fafc' }}>
-                        <th style={{ padding: '10px 14px', textAlign: 'left' }}>Name</th>
-                        <th style={{ padding: '10px', textAlign: 'left' }}>Department</th>
-                        <th style={{ padding: '10px', textAlign: 'left' }}>Contact</th>
-                        <th style={{ padding: '10px', textAlign: 'left' }}>Email</th>
-                        <th style={{ padding: '10px', textAlign: 'left' }}>Domain</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>Actions</th>
-                    </tr></thead>
+            <div className="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Domain</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {heads.length === 0 ? (
                             <tr><td colSpan={4}><div className="empty-state" style={{ padding: '2rem' }}><FiInbox size={24} /><span>No domain heads yet</span></div></td></tr>
                         ) : heads.map(h => (
-                            <tr key={h._id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                <td style={{ padding: '10px 14px', fontWeight: 600 }}>{h.name}</td>
-                                <td style={{ padding: '10px' }}>{h.department?.name || '—'}</td>
-                                <td style={{ padding: '10px' }}>{h.contact || '—'}</td>
-                                <td style={{ padding: '10px' }}>{h.email}</td>
-                                <td style={{ padding: '10px' }}>
-                                    <span style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600 }}>
+                            <tr key={h._id}>
+                                <td style={{ fontWeight: 700 }}>{h.name}</td>
+                                <td>{h.email}</td>
+                                <td>
+                                    <span style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--clr-hover-bg)', padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600 }}>
                                         {h.assignedDomain?.charAt(0).toUpperCase() + h.assignedDomain?.slice(1)}
                                     </span>
                                 </td>
-                                <td style={{ padding: '10px', textAlign: 'center' }}>
-                                    <button onClick={() => openEdit(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--clr-primary)', marginRight: 8 }}><FiEdit2 size={14} /></button>
-                                    <button onClick={() => setDeleteConfirm(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--clr-danger)' }}><FiTrash2 size={14} /></button>
+                                <td style={{ textAlign: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
+                                        <button onClick={() => openEdit(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                        <button onClick={() => setDeleteConfirm(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d4d', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -141,14 +134,6 @@ const DomainHeadManagement = () => {
                         {formError && <div style={{ color: 'var(--clr-danger)', fontSize: '0.82rem', marginBottom: '0.75rem', padding: '8px 12px', background: '#fee2e2', borderRadius: 6 }}>{formError}</div>}
                         <form onSubmit={handleSubmit}>
                             <div className="input-group"><label>Name</label><input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
-                            <div className="input-group">
-                                <label>Department</label>
-                                <select value={form.department} onChange={e => setForm(p => ({ ...p, department: e.target.value }))}>
-                                    <option value="">Select department…</option>
-                                    {departments.map(d => <option key={d._id} value={d._id}>{d.name} ({d.code})</option>)}
-                                </select>
-                            </div>
-                            <div className="input-group"><label>Contact</label><input value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="Optional contact info" /></div>
                             <div className="input-group"><label>Email</label><input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required /></div>
                             <div className="input-group"><label>Password {editing && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>(leave blank to keep)</span>}</label>
                                 <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} {...(!editing ? { required: true } : {})} placeholder="Min 6 characters" />

@@ -5,7 +5,7 @@ import { FiGlobe, FiStar, FiAlertTriangle, FiMessageSquare, FiInbox } from 'reac
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 
-const CHART_COLORS = ['#0047AB', '#088F8F', '#6F8FAF', '#A7C7E7', '#f59e0b'];
+const CHART_COLORS = ['#A39382', '#685D54', '#E5DED2', '#FBF7F4']; // Taupe, Mocha, Oat, Milk
 
 const DomainOverview = () => {
     const [stats, setStats] = useState([]);
@@ -62,11 +62,35 @@ const DomainOverview = () => {
 
     return (
         <AdminLayout title="Domain Overview">
-            <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
-                <KPI icon={<FiGlobe size={18} />} label="Total Domains" value={domains.length} color="#0047AB" />
-                <KPI icon={<FiMessageSquare size={18} />} label="Total Feedback" value={totalFeedback} color="#088F8F" />
-                <KPI icon={<FiAlertTriangle size={18} />} label="Negative (≤2★)" value={totalNeg} color="#dc2626" />
-                <KPI icon={<FiStar size={18} />} label="Domains Active" value={stats.length} color="#6F8FAF" />
+            <div className="admin-kpi-grid">
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiGlobe size={22} /></div>
+                    <div className="info">
+                        <span className="label">Total Domains</span>
+                        <span className="value">{domains.length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiMessageSquare size={22} /></div>
+                    <div className="info">
+                        <span className="label">Total Feedback</span>
+                        <span className="value">{totalFeedback}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiAlertTriangle size={22} /></div>
+                    <div className="info">
+                        <span className="label">Negative Feedback</span>
+                        <span className="value">{totalNeg}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiStar size={22} /></div>
+                    <div className="info">
+                        <span className="label">Active Domains</span>
+                        <span className="value">{stats.length}</span>
+                    </div>
+                </div>
             </div>
 
             <div className="charts-grid" style={{ marginBottom: '1.5rem' }}>
@@ -87,9 +111,9 @@ const DomainOverview = () => {
                         <tbody>{Object.entries(issueSummary).map(([d, c]) => (
                             <tr key={d} style={{ borderBottom: '1px solid #e2e8f0' }}>
                                 <td style={{ padding: 8, fontWeight: 600 }}>{d?.charAt(0).toUpperCase() + d?.slice(1)}</td>
-                                <td style={{ padding: 8, textAlign: 'center', color: '#f59e0b' }}>{c.Pending || 0}</td>
-                                <td style={{ padding: 8, textAlign: 'center', color: '#3b82f6' }}>{c['In Progress'] || 0}</td>
-                                <td style={{ padding: 8, textAlign: 'center', color: '#10b981' }}>{c.Rectified || 0}</td>
+                                <td style={{ padding: 8, textAlign: 'center', color: '#685D54' }}>{c.Pending || 0}</td>
+                                <td style={{ padding: 8, textAlign: 'center', color: '#A39382' }}>{c['In Progress'] || 0}</td>
+                                <td style={{ padding: 8, textAlign: 'center', color: '#A39382' }}>{c.Rectified || 0}</td>
                                 <td style={{ padding: 8, textAlign: 'center', color: '#94a3b8' }}>{c.Closed || 0}</td>
                             </tr>
                         ))}</tbody>
@@ -97,19 +121,25 @@ const DomainOverview = () => {
                 </div>
             </div>
 
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Domains</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '1.25rem', fontWeight: 700, color: 'var(--clr-text)' }}>Participating Domains</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
                 {domains.map((d, i) => {
                     const s = stats.find(st => st._id === d.slug) || {};
+                    const color = CHART_COLORS[i % CHART_COLORS.length];
                     return (
-                        <div key={d._id} className="chart-card" style={{ padding: '1.25rem', cursor: 'pointer' }} onClick={() => viewDetail(d.slug)}>
-                            <h4 style={{ color: CHART_COLORS[i % CHART_COLORS.length], marginBottom: 8 }}>{d.name}</h4>
-                            <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: 8 }}>{d.description}</p>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, fontSize: '0.82rem' }}>
-                                <div>Feedback: <strong>{s.totalFeedback || 0}</strong></div>
-                                <div>Avg: <strong>{s.avgRating?.toFixed(2) || '—'}★</strong></div>
-                                <div>Negative: <strong style={{ color: '#dc2626' }}>{s.negativeFeedback || 0}</strong></div>
-                                <div>Questions: <strong>{d.questions?.length || 0}</strong></div>
+                        <div key={d._id} className="card-premium" style={{ padding: '1.5rem', cursor: 'pointer' }} onClick={() => viewDetail(d.slug)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                <h4 style={{ color: color, fontSize: '1.1rem', margin: 0 }}>{d.name}</h4>
+                                <div className="icon-box-sm" style={{ background: `${color}15`, color: color }}>
+                                    <FiGlobe size={16} />
+                                </div>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--clr-text-2)', marginBottom: '1.25rem', height: '3.4rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>{d.description}</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.8rem' }}>
+                                <div style={{ color: 'var(--clr-text-3)' }}>Feedback: <strong style={{ color: 'var(--clr-text)' }}>{s.totalFeedback || 0}</strong></div>
+                                <div style={{ color: 'var(--clr-text-3)' }}>Avg: <strong style={{ color: 'var(--clr-text)' }}>{s.avgRating?.toFixed(2) || '—'}★</strong></div>
+                                <div style={{ color: 'var(--clr-text-3)' }}>Negative: <strong style={{ color: '#ff7675' }}>{s.negativeFeedback || 0}</strong></div>
+                                <div style={{ color: 'var(--clr-text-3)' }}>Questions: <strong style={{ color: 'var(--clr-text)' }}>{d.questions?.length || 0}</strong></div>
                             </div>
                         </div>
                     );
@@ -125,11 +155,11 @@ const DomainOverview = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: '1rem' }}>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Avg Rating</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0047AB' }}>{detailAnalytics.avgRating?.toFixed(2)}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#006994' }}>{detailAnalytics.avgRating?.toFixed(2)}</div>
                             </div>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Total</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#088F8F' }}>{detailAnalytics.totalFeedback}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0ABAB5' }}>{detailAnalytics.totalFeedback}</div>
                             </div>
                             <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Negative</div>
@@ -142,12 +172,12 @@ const DomainOverview = () => {
                                 {detailAnalytics.questionStats.map((q, i) => (
                                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.82rem' }}>
                                         <span style={{ color: '#475569' }}>{q.question}</span>
-                                        <strong style={{ color: '#0047AB' }}>{q.avgRating?.toFixed(2)}★</strong>
+                                        <strong style={{ color: '#0ABAB5' }}>{q.avgRating?.toFixed(2)}★</strong>
                                     </div>
                                 ))}
                             </div>
                         )}
-                        <button onClick={() => setSelectedDomain(null)} className="btn btn-primary" style={{ marginTop: '1rem', background: '#0047AB' }}>Close</button>
+                        <button onClick={() => setSelectedDomain(null)} className="btn btn-primary" style={{ marginTop: '1rem', background: 'var(--clr-primary)', color: '#fff' }} onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-hover-bg)'; e.currentTarget.style.color = 'var(--clr-hover-text)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'var(--clr-primary)'; e.currentTarget.style.color = '#fff'; }}>Close</button>
                     </div>
                 </div>
             )}
@@ -156,14 +186,24 @@ const DomainOverview = () => {
 };
 
 const KPI = ({ icon, label, value, color }) => (
-    <div className="kpi-card" style={{ '--kpi-color': color }}>
-        <div className="kpi-icon" style={{ background: `${color}18`, color }}>{icon}</div>
-        <div><div className="kpi-label">{label}</div><div className="kpi-value" style={{ color }}>{value}</div></div>
+    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
+        <div className="icon-box" style={{ background: `${color}15`, color: color }}>
+            {icon}
+        </div>
+        <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{label}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--clr-text)' }}>{value}</div>
+        </div>
     </div>
 );
 
 const Empty = () => (
-    <div className="empty-state"><FiInbox size={28} style={{ color: '#A7C7E7', marginBottom: '0.5rem' }} /><span>No data yet</span></div>
+    <div className="empty-state" style={{ padding: '2rem 1rem' }}>
+        <div className="icon-box" style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', marginBottom: '1rem', borderRadius: '50%' }}>
+            <FiInbox size={20} />
+        </div>
+        <span style={{ fontWeight: 600, color: 'var(--clr-text-2)', fontSize: '0.85rem' }}>No data available</span>
+    </div>
 );
 
 export default DomainOverview;

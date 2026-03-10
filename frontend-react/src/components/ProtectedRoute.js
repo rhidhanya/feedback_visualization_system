@@ -17,12 +17,12 @@ const ProtectedRoute = ({ children, role }) => {
     if (!token || !user) {
         // Find the appropriate login path based on the role this route requires
         const requiredRoles = Array.isArray(role) ? role : role ? [role] : [];
-        let loginPath = '/login/student';
+        let loginPath = '/login';
         
         if (requiredRoles.includes('admin')) loginPath = '/admin/login';
-        else if (requiredRoles.includes('principal') || requiredRoles.includes('dean')) loginPath = '/login/principal';
-        else if (requiredRoles.includes('faculty') || requiredRoles.includes('hod')) loginPath = '/login/faculty';
-        else if (requiredRoles.includes('domain_head')) loginPath = '/login/incharge';
+        else if (requiredRoles.includes('principal') || requiredRoles.includes('dean')) loginPath = '/login';
+        else if (requiredRoles.includes('faculty') || requiredRoles.includes('hod')) loginPath = '/login';
+        else if (requiredRoles.includes('domain_head')) loginPath = '/login';
         
         return <Navigate to={loginPath} state={{ from: location }} replace />;
     }

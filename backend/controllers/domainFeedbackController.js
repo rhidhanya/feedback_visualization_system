@@ -142,9 +142,11 @@ exports.getDomainAnalytics = async (req, res) => {
                 { $group: { _id: "$answers.questionText", avgRating: { $avg: "$answers.rating" }, count: { $sum: 1 } } },
                 { $sort: { avgRating: -1 } },
             ]),
+            User.findOne({ role: "domain_head", assignedDomain: slug }).select("name contact"),
         ]);
 
         const avg = avgResult[0]?.avgRating || 0;
+        const head = headResult;
 
         res.json({
             success: true,
@@ -155,6 +157,7 @@ exports.getDomainAnalytics = async (req, res) => {
                 negativeFeedback: negativeCount,
                 semesterTrend: semesterTrend.map(s => ({ semester: s._id, avgRating: Math.round(s.avgRating * 100) / 100, count: s.count })),
                 questionStats: questionStats.map(q => ({ question: q._id, avgRating: Math.round(q.avgRating * 100) / 100, count: q.count })),
+                domainHead: head ? { name: head.name, contact: head.contact } : null,
             },
         });
     } catch (err) {

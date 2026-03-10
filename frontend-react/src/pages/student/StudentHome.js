@@ -253,8 +253,8 @@ const StudentHome = () => {
                                             <td style={{ fontWeight: 600 }}>{fb.subjectId?.name || 'Deleted Subject'}</td>
                                             <td>{fb.subjectId?.faculty?.name || fb.subjectId?.facultyName || 'TBA'}</td>
                                             <td>
-                                                <span className={`rating-chip ${fb.overallRating >= 4 ? 'rating-high' : fb.overallRating >= 2.5 ? 'rating-mid' : 'rating-low'}`}>
-                                                    {fb.overallRating?.toFixed(1)} / 5
+                                                <span className={`rating-chip ${fb.overallRating >= 4 ? 'rating-high' : fb.overallRating >= 2.5 ? 'rating-mid' : fb.overallRating > 0 ? 'rating-low' : 'rating-none'}`}>
+                                                    {fb.overallRating ? `${fb.overallRating.toFixed(1)} / 5` : 'N/A'}
                                                 </span>
                                             </td>
                                             <td style={{ color: 'var(--clr-text-3)', fontSize: '0.8rem' }}>

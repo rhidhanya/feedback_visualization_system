@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import {
-    FiPlus, FiEdit2, FiTrash2, FiUser, FiMail, FiPhone,
-    FiSearch, FiX, FiCheck, FiAlertCircle, FiRefreshCw
+    FiPlus, FiEdit2, FiTrash2, FiUser, FiMail,
+    FiSearch, FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiUsers, FiCheckCircle, FiShield
 } from 'react-icons/fi';
 
 const HodManagement = () => {
@@ -18,26 +18,40 @@ const HodManagement = () => {
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
     const [form, setForm] = useState({
-        name: '', email: '', password: '', department: '', hodId: '', contact: ''
+        name: '', email: '', password: '', department: '', hodId: ''
     });
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const [filters, setFilters] = useState({ department: '', isActive: '' });
 
     const fetchHods = useCallback(async () => {
         try {
             setLoading(true);
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                search: search
+            });
+            if (filters.department) params.append('department', filters.department);
+            if (filters.isActive !== '') params.append('isActive', filters.isActive);
+
             const [hodRes, deptRes] = await Promise.all([
-                api.get('/admin/hod'),
+                api.get(`/admin/hod?${params.toString()}`),
                 api.get('/departments'),
             ]);
             setHods(hodRes.data.data || []);
+            setTotalPages(hodRes.data.pages || 1);
+            setTotalItems(hodRes.data.total || 0);
             setDepartments(deptRes.data.data || []);
         } catch (err) {
             showToast('error', 'Failed to load HOD data');
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currentPage, search, filters]);
 
     useEffect(() => { fetchHods(); }, [fetchHods]);
 
@@ -48,7 +62,7 @@ const HodManagement = () => {
 
     const openCreate = () => {
         setEditingHod(null);
-        setForm({ name: '', email: '', password: '', department: '', hodId: '', contact: '' });
+        setForm({ name: '', email: '', password: '', department: '', hodId: '' });
         setFormError('');
         setModalOpen(true);
     };
@@ -61,7 +75,6 @@ const HodManagement = () => {
             password: '',
             department: h.department?._id || h.department || '',
             hodId: h.hodId || '',
-            contact: h.contact || '',
         });
         setFormError('');
         setModalOpen(true);
@@ -91,7 +104,6 @@ const HodManagement = () => {
                 email: form.email,
                 department: form.department,
                 hodId: form.hodId,
-                contact: form.contact,
             };
             if (form.password) payload.password = form.password;
 
@@ -130,143 +142,184 @@ const HodManagement = () => {
         setSortConfig({ key, direction });
     };
 
-    const filteredAndSorted = hods
-        .filter(h =>
-            h.name?.toLowerCase().includes(search.toLowerCase()) ||
-            h.email?.toLowerCase().includes(search.toLowerCase()) ||
-            h.department?.name?.toLowerCase().includes(search.toLowerCase()) ||
-            h.hodId?.toLowerCase().includes(search.toLowerCase())
-        )
-        .sort((a, b) => {
-            let aVal, bVal;
-            if (sortConfig.key === 'name') { aVal = (a.name || '').toLowerCase(); bVal = (b.name || '').toLowerCase(); }
-            else if (sortConfig.key === 'department') { aVal = (a.department?.name || '').toLowerCase(); bVal = (b.department?.name || '').toLowerCase(); }
-            else if (sortConfig.key === 'hodId') { aVal = (a.hodId || '').toLowerCase(); bVal = (b.hodId || '').toLowerCase(); }
+    const sortedHods = [...hods].sort((a, b) => {
+        let aVal, bVal;
+        if (sortConfig.key === 'name') { aVal = (a.name || '').toLowerCase(); bVal = (b.name || '').toLowerCase(); }
+        else if (sortConfig.key === 'department') { aVal = (a.department?.name || '').toLowerCase(); bVal = (b.department?.name || '').toLowerCase(); }
+        else if (sortConfig.key === 'hodId') { aVal = (a.hodId || '').toLowerCase(); bVal = (b.hodId || '').toLowerCase(); }
 
-            if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-            if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     return (
         <AdminLayout title="HOD Management">
-            {/* Toast */}
+            <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>HOD Management</h2>
+                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Core department leadership & authorization controls</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn btn-ghost" onClick={fetchHods}>
+                        <FiRefreshCw size={16} />
+                    </button>
+                    <button className="btn btn-primary" onClick={openCreate}>
+                        <FiPlus size={16} /> Add New HOD
+                    </button>
+                </div>
+            </div>
+
+            <div className="admin-kpi-grid">
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiUsers size={22} /></div>
+                    <div className="info">
+                        <span className="label">Total HODs</span>
+                        <span className="value">{totalItems}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiUser size={22} /></div>
+                    <div className="info">
+                        <span className="label">Departments</span>
+                        <span className="value">{departments.length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiCheckCircle size={22} /></div>
+                    <div className="info">
+                        <span className="label">Active Access</span>
+                        <span className="value">{hods.filter(h => h.isActive).length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiShield size={22} /></div>
+                    <div className="info">
+                        <span className="label">Admin Status</span>
+                        <span className="value">Secure</span>
+                    </div>
+                </div>
+            </div>
+
             {toast && (
-                <div style={{
-                    position: 'fixed', top: 20, right: 20, zIndex: 9999,
-                    background: toast.type === 'success' ? 'var(--clr-accent)' : 'var(--clr-danger)',
-                    color: '#fff', padding: '0.75rem 1.25rem', borderRadius: 8,
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                }}>
-                    {toast.type === 'success' ? <FiCheck size={16} /> : <FiAlertCircle size={16} />}
+                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100, background: toast.type === 'success' ? 'var(--clr-success)' : 'var(--clr-danger)', color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '10px', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
                     {toast.msg}
                 </div>
             )}
 
-            {/* Page Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
-                    <h2 style={{ fontSize: '1.2rem', marginBottom: '0.15rem' }}>Manage HOD</h2>
-                    <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Create HOD accounts for departments. Only one HOD per department is allowed.</p>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+                <div className="input-group" style={{ margin: 0, flex: 1 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
+                    <select
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        value={filters.department}
+                        onChange={e => { setFilters(p => ({ ...p, department: e.target.value })); setCurrentPage(1); }}
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(d => <option key={d._id} value={d._id}>{d.name} ({d.code})</option>)}
+                    </select>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button className="btn btn-ghost" onClick={fetchHods} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FiRefreshCw size={14} /> Refresh
-                    </button>
-                    <button className="btn btn-primary" onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FiPlus size={15} /> Add HOD
-                    </button>
+                <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Status</label>
+                    <select
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        value={filters.isActive}
+                        onChange={e => { setFilters(p => ({ ...p, isActive: e.target.value })); setCurrentPage(1); }}
+                    >
+                        <option value="">All Status</option>
+                        <option value="true">Active Only</option>
+                        <option value="false">Inactive Only</option>
+                    </select>
+                </div>
+                <div className="input-group" style={{ margin: 0, flex: 2 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Authorization</label>
+                    <div style={{ position: 'relative' }}>
+                        <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
+                        <input 
+                            type="text" 
+                            placeholder="Search by Name, Email or HOD ID..." 
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Search */}
-            <div style={{ background: '#fff', padding: '0.875rem 1.125rem', borderRadius: 10, border: '1px solid var(--clr-border)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <FiSearch size={16} style={{ color: 'var(--clr-text-3)' }} />
-                <input
-                    type="text"
-                    placeholder="Search HOD by name, email, or department…"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    style={{ border: 'none', outline: 'none', flex: 1, fontSize: '0.875rem', background: 'transparent', color: 'var(--clr-text)' }}
-                />
-                {search && <FiX style={{ cursor: 'pointer', color: 'var(--clr-text-3)' }} onClick={() => setSearch('')} />}
-            </div>
-
-            {/* HOD Table */}
             {loading ? (
-                <div className="loading-state"><div className="spinner" /><span>Loading…</span></div>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner" /></div>
+            ) : hods.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--clr-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--clr-border)' }}>
+                    <FiUser size={48} style={{ color: 'var(--clr-text-3)', marginBottom: '1.25rem' }} />
+                    <h3 style={{ color: 'var(--clr-text-on-oat)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '0.05em' }}>No results match the current filters</h3>
+                </div>
             ) : (
-                <div className="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                                    HOD Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th onClick={() => handleSort('hodId')} style={{ cursor: 'pointer' }}>
-                                    HOD ID {sortConfig.key === 'hodId' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th>Email</th>
-                                <th onClick={() => handleSort('department')} style={{ cursor: 'pointer' }}>
-                                    Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                                </th>
-                                <th>Phone Number</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredAndSorted.length === 0 ? (
+                <>
+                    <div className="table-wrap">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--clr-text-3)' }}>
-                                        {search ? 'No HOD match your search.' : 'No HOD accounts yet. Click "Add HOD" to create one.'}
-                                    </td>
+                                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                                    <th onClick={() => handleSort('hodId')} style={{ cursor: 'pointer' }}>HOD ID {sortConfig.key === 'hodId' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                                    <th>Email</th>
+                                    <th onClick={() => handleSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
-                            ) : (
-                                filteredAndSorted.map(h => (
+                            </thead>
+                            <tbody>
+                                {sortedHods.map(h => (
                                     <tr key={h._id}>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', flexShrink: 0 }}>
+                                        <td style={{ fontWeight: 700 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--clr-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
                                                     {h.name?.charAt(0)?.toUpperCase()}
                                                 </div>
-                                                <span style={{ fontWeight: 600 }}>{h.name}</span>
+                                                {h.name}
                                             </div>
                                         </td>
-                                        <td style={{ color: 'var(--clr-text-2)', fontSize: '0.875rem' }}>{h.hodId || '—'}</td>
-                                        <td style={{ color: 'var(--clr-text-2)', fontSize: '0.875rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                <FiMail size={12} /> {h.email}
-                                            </span>
-                                        </td>
-                                        <td style={{ fontSize: '0.875rem' }}>
-                                            {h.department?.name ? (
-                                                <>{h.department.name} <span style={{ color: 'var(--clr-text-3)', fontSize: '0.75rem' }}>({h.department.code})</span></>
-                                            ) : '—'}
-                                        </td>
-                                        <td style={{ color: 'var(--clr-text-2)', fontSize: '0.875rem' }}>
-                                            {h.contact ? (
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                    <FiPhone size={12} /> {h.contact}
-                                                </span>
-                                            ) : '—'}
+                                        <td>{h.hodId || '—'}</td>
+                                        <td>{h.email}</td>
+                                        <td>
+                                            {h.department ? <span className="dept-tag">{h.department.code}</span> : '—'}
                                         </td>
                                         <td>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button className="btn btn-ghost" style={{ padding: '0.35rem 0.625rem', fontSize: '0.8rem' }} onClick={() => openEdit(h)}>
-                                                    <FiEdit2 size={13} /> Edit
+                                            <span className={`badge ${h.isActive ? 'badge-success' : 'badge-danger'}`}>
+                                                <span className="badge-dot">●</span> {h.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            await api.patch(`/users/${h._id}/toggle-status`);
+                                                            showToast('success', `${h.name} status updated`);
+                                                            fetchHods();
+                                                        } catch (err) { showToast('error', 'Failed to update status'); }
+                                                    }}
+                                                    className={h.isActive ? 'btn-deactivate' : 'btn-activate'}
+                                                >
+                                                    {h.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
-                                                <button className="btn btn-danger" style={{ padding: '0.35rem 0.625rem', fontSize: '0.8rem' }} onClick={() => setDeleteConfirm(h)}>
-                                                    <FiTrash2 size={13} />
-                                                </button>
+                                                <button onClick={() => openEdit(h)} style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                                <button onClick={() => setDeleteConfirm(h)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>← Previous</button>
+                            <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 500 }}>Page {currentPage} of {totalPages}</span>
+                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next →</button>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Modal: Create / Edit */}
@@ -312,11 +365,6 @@ const HodManagement = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="input-group">
-                                <label><FiPhone size={12} style={{ marginRight: 4 }} /> Phone Number</label>
-                                <input type="text" name="contact" value={form.contact} onChange={handleFormChange} placeholder="e.g. +91 9876543210" />
-                            </div>
-
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                                 <button type="button" className="btn btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary" disabled={formLoading}>

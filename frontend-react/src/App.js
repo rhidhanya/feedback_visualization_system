@@ -50,7 +50,7 @@ const Unauthorized = () => (
     <FiAlertCircle size={52} style={{ color: 'var(--clr-primary)' }} />
     <h2 style={{ color: 'var(--clr-danger)' }}>Access Denied</h2>
     <p style={{ color: 'var(--clr-text-3)' }}>You don't have permission to view this page.</p>
-    <a href="/login/student" className="btn btn-primary">&larr; Back to Login</a>
+    <a href="/login" className="btn btn-primary">&larr; Back to Login</a>
   </div>
 );
 
@@ -69,6 +69,7 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* ── Admin protected routes ────────────────────── */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/faculty" element={<ProtectedRoute role="admin"><FacultyAnalytics /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute role="admin"><StudentsPage /></ProtectedRoute>} />

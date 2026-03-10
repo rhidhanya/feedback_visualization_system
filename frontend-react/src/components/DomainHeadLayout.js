@@ -1,14 +1,12 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiGrid, FiMessageSquare, FiBell, FiAlertCircle, FiLogOut } from 'react-icons/fi';
+import { FiGrid, FiMessageSquare, FiLogOut } from 'react-icons/fi';
 import { CampusLensLogo } from './CollegePulseLogo';
 import { useAuth } from '../context/AuthContext';
 
 const domainHeadNav = [
     { to: '/domain-head/dashboard', icon: <FiGrid size={16} />, label: 'Dashboard' },
     { to: '/domain-head/feedback', icon: <FiMessageSquare size={16} />, label: 'Feedback' },
-    { to: '/domain-head/notifications', icon: <FiBell size={16} />, label: 'Notifications' },
-    { to: '/domain-head/issues', icon: <FiAlertCircle size={16} />, label: 'Issues' },
 ];
 
 const DomainHeadLayout = ({ children, title = 'Domain Dashboard' }) => {
@@ -23,7 +21,12 @@ const DomainHeadLayout = ({ children, title = 'Domain Dashboard' }) => {
         <div className="admin-layout">
             <aside className="sidebar" id="dh-sidebar">
                 <div className="sidebar-logo">
-                    <CampusLensLogo iconSize={34} />
+                    <div className="brand">
+                        <div className="brand-icon">
+                            <CampusLensLogo iconSize={34} hideText />
+                        </div>
+                        <span className="brand-text">CampusLens</span>
+                    </div>
                 </div>
                 <nav className="sidebar-nav">
                     <div className="nav-section">
@@ -43,7 +46,7 @@ const DomainHeadLayout = ({ children, title = 'Domain Dashboard' }) => {
                     </div>
                 </nav>
                 <div className="sidebar-footer">
-                    <button className="nav-item" style={{ color: 'var(--clr-danger)' }} onClick={handleLogout}>
+                    <button className="nav-item" style={{ color: '#ff4d4d' }} onClick={handleLogout}>
                         <span className="nav-icon"><FiLogOut size={16} /></span> Logout
                     </button>
                 </div>
@@ -53,9 +56,9 @@ const DomainHeadLayout = ({ children, title = 'Domain Dashboard' }) => {
                     <span className="topbar-title">{title}</span>
                     <div className="topbar-right">
                         <div className="user-chip">
-                            <div className="user-avatar" style={{ background: '#088F8F' }}>{initials}</div>
+                            <div className="user-avatar" style={{ background: 'var(--clr-primary)' }}>{initials}</div>
                             <span>{user?.name}</span>
-                            <span className="badge" style={{ background: '#088F8F', color: '#fff', marginLeft: '0.25rem' }}>{domainLabel} Head</span>
+                            <span className="badge badge-primary">{domainLabel} Head</span>
                         </div>
                     </div>
                 </header>

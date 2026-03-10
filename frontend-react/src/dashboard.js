@@ -93,9 +93,9 @@ const Dashboard = () => {
         <div className="dashboard-main">
           {summaryStats && (
             <div className="kpi-grid">
-              <KPICard title="Total Courses" value={courses.length} icon={FiFileText} color="#2563eb" />
-              <KPICard title="Avg Rating" value={summaryStats.avgRating?.[0]?.avg?.toFixed(1) || 0} icon={FiStar} color="#f59e0b" suffix="/5" />
-              <KPICard title="Completion Rate" value={82.5} icon={FiCheckCircle} color="#10b981" suffix="%" />
+              <KPICard title="Total Courses" value={courses.length} icon={FiFileText} color="#685D54" />
+              <KPICard title="Avg Rating" value={summaryStats.avgRating?.[0]?.avg?.toFixed(1) || 0} icon={FiStar} color="#A39382" suffix="/5" />
+              <KPICard title="Completion Rate" value={82.5} icon={FiCheckCircle} color="#A39382" suffix="%" />
               <KPICard title="Positive Sentiment" value={summaryStats.sentimentBreakdown?.find(s => s._id === 'Positive')?.count || 0} icon={FiTrendingUp} color="#8b5cf6" />
             </div>
           )}
@@ -121,7 +121,7 @@ const Dashboard = () => {
                       labels: summaryStats.sentimentBreakdown.map(s => s._id),
                       datasets: [{
                         data: summaryStats.sentimentBreakdown.map(s => s.count),
-                        backgroundColor: ["#10b981", "#ef4444", "#94a3b8"],
+                        backgroundColor: ["#A39382", "#685D54", "#E5DED2"],
                       }],
                     }}
                     options={{ responsive: true, maintainAspectRatio: false }}

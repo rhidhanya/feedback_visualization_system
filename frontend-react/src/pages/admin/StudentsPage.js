@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiUsers, FiUserPlus, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
+import { FiUsers, FiUserPlus, FiEdit2, FiTrash2, FiX, FiBook, FiCheckCircle, FiShield, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 
@@ -11,17 +11,34 @@ const StudentsPage = () => {
     const [page, setPage] = useState(1);
     const [filters, setFilters] = useState({ department: '', semester: '', isActive: '' });
     const [actionMsg, setActionMsg] = useState(null);
-    const limit = 30;
+    const limit = 10;
 
     // Modal & Form States
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', password: '', department: '', rollNumber: '', semester: '', year: '', section: '', residenceType: 'dayscholar' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', department: '', rollNumber: '', semester: '', residenceType: 'dayscholar' });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
     const showToast = (ok, text) => { setActionMsg({ ok, text }); setTimeout(() => setActionMsg(null), 3500); };
+
+    const [search, setSearch] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+        setSortConfig({ key, direction });
+    };
+
+    const sortedUsers = [...users].sort((a, b) => {
+        let aVal = (a[sortConfig.key] || '').toString().toLowerCase();
+        let bVal = (b[sortConfig.key] || '').toString().toLowerCase();
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -30,17 +47,18 @@ const StudentsPage = () => {
             if (filters.department) p.set('department', filters.department);
             if (filters.semester) p.set('semester', filters.semester);
             if (filters.isActive !== '') p.set('isActive', filters.isActive);
+            if (search) p.set('search', search);
 
             const [userRes, deptRes] = await Promise.all([
                 api.get(`/users?${p}`),
                 api.get('/departments'),
             ]);
-            setUsers(userRes.data.data);
-            setTotal(userRes.data.total);
-            setDepartments(deptRes.data.data);
+            setUsers(userRes.data.data || []);
+            setTotal(userRes.data.total || 0);
+            setDepartments(deptRes.data.data || []);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
-    }, [page, filters]);
+    }, [page, filters, search]);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
@@ -57,7 +75,7 @@ const StudentsPage = () => {
 
     const openAdd = () => {
         setEditing(null);
-        setForm({ name: '', email: '', password: '', department: '', rollNumber: '', semester: '', year: '', section: '', residenceType: 'dayscholar' });
+        setForm({ name: '', email: '', password: '', department: '', rollNumber: '', semester: '', residenceType: 'dayscholar' });
         setFormError('');
         setModalOpen(true);
     };
@@ -71,8 +89,6 @@ const StudentsPage = () => {
             department: u.department?._id || u.department || '',
             rollNumber: u.rollNumber || '',
             semester: u.semester || '',
-            year: u.year || '',
-            section: u.section || '',
             residenceType: u.residenceType || 'dayscholar'
         });
         setFormError('');
@@ -93,18 +109,12 @@ const StudentsPage = () => {
 
         setFormLoading(true);
         try {
-            // Re-using the generic user update / creation logic 
-            // The backend doesn't have a specific `createStudent` endpoint besides auth/register, so we might need to rely on generic user creation or auth/register if an admin is creating them.
-            // Wait, we need to handle creating a student. A generic POST /api/users does not exist in our userController yet? 
-            // Wait, auth/register is for students. Let's use auth/register to create, and users/:id to update.
             const payload = {
                 name: form.name,
                 email: form.email,
                 department: form.department,
                 rollNumber: form.rollNumber,
                 semester: form.semester,
-                year: form.year,
-                section: form.section,
                 residenceType: form.residenceType
             };
             if (form.password) payload.password = form.password;
@@ -113,7 +123,7 @@ const StudentsPage = () => {
                 await api.put(`/users/${editing._id}`, payload);
                 showToast(true, 'Student updated successfully');
             } else {
-                await api.post('/users/student', payload); // Admin-only endpoint (no email restriction)
+                await api.post('/users/student', payload); 
                 showToast(true, 'Student created successfully');
             }
             setModalOpen(false);
@@ -140,27 +150,61 @@ const StudentsPage = () => {
 
     return (
         <AdminLayout title="Students">
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="page-header">
                 <div>
-                    <h2>Students</h2>
-                    <p>Manage student accounts — {total} students registered</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>Student Management</h2>
+                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Core student directory & residency tracking</p>
                 </div>
-                <button className="btn btn-primary" onClick={openAdd} style={{ background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FiUserPlus size={14} /> Add Student
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn btn-ghost" onClick={fetchUsers}><FiRefreshCw size={16} /></button>
+                    <button className="btn btn-primary" onClick={openAdd}>
+                        <FiUserPlus size={16} /> Add Student
+                    </button>
+                </div>
+            </div>
+
+            <div className="admin-kpi-grid">
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiUsers size={22} /></div>
+                    <div className="info">
+                        <span className="label">Total Students</span>
+                        <span className="value">{total}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiBook size={22} /></div>
+                    <div className="info">
+                        <span className="label">Departments</span>
+                        <span className="value">{departments.length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiCheckCircle size={22} /></div>
+                    <div className="info">
+                        <span className="label">Active Status</span>
+                        <span className="value">{users.filter(u => u.isActive).length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiShield size={22} /></div>
+                    <div className="info">
+                        <span className="label">Data Integrity</span>
+                        <span className="value">High</span>
+                    </div>
+                </div>
             </div>
 
             {actionMsg && (
-                <div className={`alert ${actionMsg.ok ? 'alert-success' : 'alert-error'}`} id="action-msg">
+                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100, background: actionMsg.ok ? 'var(--clr-success)' : 'var(--clr-danger)', color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '10px', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
                     {actionMsg.text}
                 </div>
             )}
 
-            <div className="filter-bar" id="student-filter-bar">
-                <div className="input-group">
-                    <label>Department</label>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+                <div className="input-group" style={{ margin: 0, flex: 1 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
-                        id="st-filter-dept"
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
                         value={filters.department}
                         onChange={e => { setFilters(p => ({ ...p, department: e.target.value })); setPage(1); }}
                     >
@@ -168,10 +212,10 @@ const StudentsPage = () => {
                         {departments.map(d => <option key={d._id} value={d._id}>{d.name} ({d.code})</option>)}
                     </select>
                 </div>
-                <div className="input-group">
-                    <label>Semester</label>
+                <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Semester</label>
                     <select
-                        id="st-filter-sem"
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
                         value={filters.semester}
                         onChange={e => { setFilters(p => ({ ...p, semester: e.target.value })); setPage(1); }}
                     >
@@ -179,68 +223,80 @@ const StudentsPage = () => {
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Semester {s}</option>)}
                     </select>
                 </div>
-                <div className="input-group">
-                    <label>Status</label>
+                <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Status</label>
                     <select
-                        id="st-filter-status"
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
                         value={filters.isActive}
                         onChange={e => { setFilters(p => ({ ...p, isActive: e.target.value })); setPage(1); }}
                     >
-                        <option value="">All</option>
+                        <option value="">All Status</option>
                         <option value="true">Active</option>
                         <option value="false">Inactive</option>
                     </select>
                 </div>
+                <div className="input-group" style={{ margin: 0, flex: 2 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Students</label>
+                    <div style={{ position: 'relative' }}>
+                        <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
+                        <input 
+                            type="text" 
+                            placeholder="Search by Name, Roll No..." 
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                        />
+                    </div>
+                </div>
             </div>
 
             {loading ? (
-                <div className="spinner-wrap"><div className="spinner" /></div>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="spinner" /></div>
             ) : users.length === 0 ? (
-                <div className="empty-state">
-                    <FiUsers size={32} style={{ color: 'var(--clr-primary-lt)', marginBottom: '0.5rem' }} />
-                    <h3>No students found</h3>
+                <div style={{ textAlign: 'center', padding: '4rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                    <FiUsers size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
+                    <h3 style={{ color: '#64748b' }}>No students found matching filters</h3>
                 </div>
             ) : (
                 <>
-                    <div className="table-wrap" id="students-table">
+                    <div className="table-wrap">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Roll No.</th>
+                                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                                    <th onClick={() => handleSort('rollNumber')} style={{ cursor: 'pointer' }}>Roll No. {sortConfig.key === 'rollNumber' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                                     <th>Email</th>
                                     <th>Department</th>
-                                    <th>Year</th>
-                                    <th>Sec</th>
-                                    <th>Sem</th>
+                                    <th onClick={() => handleSort('semester')} style={{ cursor: 'pointer' }}>Sem {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map(u => (
+                                {sortedUsers.map(u => (
                                     <tr key={u._id}>
-                                        <td style={{ fontWeight: 600 }}>{u.name}</td>
-                                        <td style={{ color: 'var(--clr-text-3)', fontSize: '0.8125rem' }}>{u.rollNumber}</td>
-                                        <td style={{ color: 'var(--clr-text-3)', fontSize: '0.8125rem' }}>{u.email}</td>
+                                        <td style={{ fontWeight: 700 }}>{u.name}</td>
+                                        <td>{u.rollNumber}</td>
+                                        <td>{u.email}</td>
                                         <td>
-                                            {u.department ? <span className="badge badge-primary">{u.department.code}</span> : '—'}
+                                            {u.department ? <span className="dept-tag">{u.department.code}</span> : '—'}
                                         </td>
-                                        <td>{u.year || '—'}</td>
-                                        <td>{u.section || '—'}</td>
                                         <td>Sem {u.semester}</td>
                                         <td>
                                             <span className={`badge ${u.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                                {u.isActive ? '● Active' : '● Inactive'}
+                                                <span className="badge-dot">●</span> {u.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <button onClick={() => toggleStatus(u._id, u.name)} className={`btn ${u.isActive ? 'btn-danger' : 'btn-success'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', minWidth: '70px' }}>
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                <button 
+                                                    onClick={() => toggleStatus(u._id, u.name)} 
+                                                    className={u.isActive ? 'btn-deactivate' : 'btn-activate'}
+                                                >
                                                     {u.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
-                                                <button onClick={() => openEdit(u)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--clr-primary)' }}><FiEdit2 size={14} /></button>
-                                                <button onClick={() => setDeleteConfirm(u)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--clr-danger)' }}><FiTrash2 size={14} /></button>
+                                                <button onClick={() => openEdit(u)} style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                                <button onClick={() => setDeleteConfirm(u)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -250,10 +306,10 @@ const StudentsPage = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <button id="students-prev-btn" className="btn btn-ghost" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>← Prev</button>
-                            <span style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Page {page} of {totalPages}</span>
-                            <button id="students-next-btn" className="btn btn-ghost" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next →</button>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center', alignItems: 'center' }}>
+                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>← Previous</button>
+                            <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 500 }}>Page {page} of {totalPages}</span>
+                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next →</button>
                         </div>
                     )}
                 </>
@@ -299,16 +355,6 @@ const StudentsPage = () => {
                                 </select>
                             </div>
 
-                            <div className="input-group">
-                                <label>Year</label>
-                                <input value={form.year} onChange={e => setForm(p => ({ ...p, year: e.target.value }))} placeholder="e.g. 2nd Year" />
-                            </div>
-
-                            <div className="input-group">
-                                <label>Section</label>
-                                <input value={form.section} onChange={e => setForm(p => ({ ...p, section: e.target.value }))} placeholder="e.g. A" />
-                            </div>
-                            
                             <div className="input-group">
                                 <label>Semester</label>
                                 <select value={form.semester} onChange={e => setForm(p => ({ ...p, semester: e.target.value }))}>

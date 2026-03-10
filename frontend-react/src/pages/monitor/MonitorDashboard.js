@@ -5,7 +5,7 @@ import { FiMessageSquare, FiStar, FiAlertTriangle, FiGlobe, FiInbox } from 'reac
 import MonitorLayout from '../../components/MonitorLayout';
 import api from '../../api/axios';
 
-const CHART_COLORS = ['#57356a', '#725483', '#897098', '#aa98b5', '#cbc1d2'];
+const CHART_COLORS = ['#0ABAB5', '#006994', '#9BC4E2', '#8FE2E1'];
 
 const MonitorDashboard = () => {
     const [domainStats, setDomainStats] = useState([]);
@@ -56,7 +56,8 @@ const MonitorDashboard = () => {
         labels: domainStats.map(d => d._id?.charAt(0).toUpperCase() + d._id?.slice(1)),
         datasets: [{
             label: 'Avg Rating', data: domainStats.map(d => Math.round(d.avgRating * 100) / 100),
-            backgroundColor: domainStats.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]), borderRadius: 5,
+            backgroundColor: domainStats.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]), borderRadius: 8,
+            barThickness: 25,
         }],
     } : null;
 
@@ -64,7 +65,8 @@ const MonitorDashboard = () => {
         labels: domainStats.map(d => d._id?.charAt(0).toUpperCase() + d._id?.slice(1)),
         datasets: [{
             label: 'Negative Feedback', data: domainStats.map(d => d.negativeFeedback),
-            backgroundColor: '#dc2626', borderRadius: 5,
+            backgroundColor: '#006994', borderRadius: 8,
+            barThickness: 25,
         }],
     } : null;
 
@@ -72,10 +74,10 @@ const MonitorDashboard = () => {
         <MonitorLayout title="Monitoring Overview">
             {/* KPIs */}
             <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
-                <KPI icon={<FiGlobe size={18} />} label="Active Domains" value={domains.length} color="var(--clr-primary)" />
-                <KPI icon={<FiMessageSquare size={18} />} label="Total Feedback" value={totalFeedback} color="var(--clr-accent)" />
-                <KPI icon={<FiStar size={18} />} label="Overall Avg" value={`${avgAll.toFixed(2)} / 5`} color="var(--clr-p-main)" />
-                <KPI icon={<FiAlertTriangle size={18} />} label="Negative Alerts" value={totalNegative} color="var(--clr-danger)" />
+                <KPI icon={<FiGlobe size={18} />} label="Active Domains" value={domains.length} color="#0ABAB5" />
+                <KPI icon={<FiMessageSquare size={18} />} label="Total Feedback" value={totalFeedback} color="#006994" />
+                <KPI icon={<FiStar size={18} />} label="Overall Avg" value={`${avgAll.toFixed(2)} / 5`} color="#9BC4E2" />
+                <KPI icon={<FiAlertTriangle size={18} />} label="Negative Alerts" value={totalNegative} color="#dc2626" />
             </div>
 
             {/* Charts */}
@@ -134,9 +136,9 @@ const MonitorDashboard = () => {
                         {Object.entries(issueSummary).map(([dom, counts]) => (
                             <tr key={dom} style={{ borderBottom: '1px solid #e2e8f0' }}>
                                 <td style={{ padding: '8px 12px', fontWeight: 600 }}>{dom?.charAt(0).toUpperCase() + dom?.slice(1)}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#f59e0b', fontWeight: 600 }}>{counts.Pending || 0}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#3b82f6', fontWeight: 600 }}>{counts['In Progress'] || 0}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#10b981', fontWeight: 600 }}>{counts.Rectified || 0}</td>
+                                <td style={{ padding: '8px', textAlign: 'center', color: '#685D54', fontWeight: 600 }}>{counts.Pending || 0}</td>
+                                <td style={{ padding: '8px', textAlign: 'center', color: '#A39382', fontWeight: 600 }}>{counts['In Progress'] || 0}</td>
+                                <td style={{ padding: '8px', textAlign: 'center', color: '#A39382', fontWeight: 600 }}>{counts.Rectified || 0}</td>
                                 <td style={{ padding: '8px', textAlign: 'center', color: '#94a3b8', fontWeight: 600 }}>{counts.Closed || 0}</td>
                             </tr>
                         ))}

@@ -18,30 +18,41 @@ ChartJS.register(
 );
 
 // ── Chart defaults ─────────────────────────────────────────────────────────
-const TEXT = '#475569';
-const GRID = '#e2e8f0';
+const OAT = '#E5DED2';
+const CHARCOAL = '#232323';
+const MOCHA = '#685D54';
+const TAUPE = '#A39382';
+const MILK = '#FBF7F4';
+
+const TEXT = OAT; // Oat on Charcoal
+const GRID = 'rgba(104, 93, 84, 0.25)'; // Mocha line
 const TIP = {
-    backgroundColor: '#fff',
-    titleColor: '#0f172a',
-    bodyColor: '#475569',
-    borderColor: '#e2e8f0',
+    backgroundColor: CHARCOAL,
+    titleColor: OAT,
+    bodyColor: OAT,
+    borderColor: MOCHA,
     borderWidth: 1,
     padding: 12,
+    cornerRadius: 4,
 };
-const TICK = { color: TEXT, font: { family: 'Inter', size: 11 } };
+const TICK = { color: OAT, font: { family: 'Inter', size: 11, weight: 600 } };
 const baseChartOpts = (extraOpts = {}) => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { labels: { color: TEXT, font: { family: 'Inter', size: 12 }, padding: 16 } },
+        legend: { labels: { color: TEXT, font: { family: 'Inter', size: 12, weight: 600 }, padding: 16 } },
         tooltip: { ...TIP },
         ...extraOpts.plugins,
+    },
+    scales: {
+        x: { grid: { color: GRID }, ticks: TICK },
+        y: { grid: { color: GRID }, ticks: TICK },
     },
     ...extraOpts,
 });
 
-// Palette – only the allowed shades
-const CHART_COLORS = ['#0047AB', '#6F8FAF', '#A7C7E7', '#088F8F'];
+// Palette – clean Charcoal & Oat compatible variations
+const CHART_COLORS = [TAUPE, MOCHA, OAT, MILK];
 
 // Dept filter options
 // eslint-disable-next-line no-unused-vars
@@ -164,8 +175,9 @@ const AdminDashboard = () => {
         datasets: [{
             label: 'Avg Rating',
             data: data.faculty.slice(0, 15).map(f => f.avgRating),
-            backgroundColor: '#0047AB',
-            borderRadius: 5,
+            backgroundColor: TAUPE,
+            borderRadius: 8,
+            barThickness: 18
         }],
     } : null;
 
@@ -174,7 +186,7 @@ const AdminDashboard = () => {
         labels: Object.keys(data.dist).map(d => `${d} ★`),
         datasets: [{
             data: Object.values(data.dist),
-            backgroundColor: ['#A7C7E7', '#6F8FAF', '#0047AB', '#088F8F', '#004080'],
+            backgroundColor: CHART_COLORS,
             borderColor: '#fff',
             borderWidth: 2,
         }],
@@ -185,13 +197,14 @@ const AdminDashboard = () => {
         labels: data.trend.map(t => t.label || `Sem ${t.semester}`),
         datasets: [{
             label: 'Avg Rating',
-            data: data.trend.map(t => t.avgRating),
-            borderColor: '#088F8F',
-            backgroundColor: 'rgba(8,143,143,0.08)',
+            data: data.trend.map(t => t.avgRating || 0),
+            borderColor: TAUPE,
+            backgroundColor: 'rgba(163, 147, 130, 0.1)',
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: '#088F8F',
+            pointBackgroundColor: OAT,
             pointRadius: 5,
+            pointHoverRadius: 7
         }],
     } : null;
 
@@ -202,7 +215,8 @@ const AdminDashboard = () => {
             label: 'Avg Rating',
             data: data.deptData.map(d => d.avgRating),
             backgroundColor: data.deptData.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-            borderRadius: 5,
+            borderRadius: 8,
+            barThickness: 25
         }],
     } : null;
 
@@ -220,12 +234,12 @@ const AdminDashboard = () => {
     return (
         <AdminLayout title="Dashboard">
             {/* ── Page Header ─────────────────────────────── */}
-            <div className="dash-header">
+            <div className="dash-header" style={{ marginBottom: '2rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.25rem', marginBottom: '0.15rem' }}>Faculty Feedback Analytics</h2>
-                    <p style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                        Anonymous · All submissions are aggregated and anonymised
-                    </p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>
+                        Faculty Feedback <span style={{ color: 'var(--clr-primary)' }}>Analytics</span>
+                    </h2>
+                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Real-time institutional performance metrics</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {lastUpdate && (
@@ -239,7 +253,9 @@ const AdminDashboard = () => {
                         className="btn btn-primary"
                         onClick={handleGeneratePDF}
                         disabled={pdfLoading}
-                        style={{ background: '#0047AB', fontSize: '0.815rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                        style={{ background: 'var(--clr-primary)', color: '#fff', fontSize: '0.815rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-hover-bg)'; e.currentTarget.style.color = 'var(--clr-hover-text)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--clr-primary)'; e.currentTarget.style.color = '#fff'; }}
                     >
                         <FiDownload size={14} />
                         {pdfLoading ? 'Generating…' : 'Generate PDF Report'}
@@ -261,13 +277,16 @@ const AdminDashboard = () => {
             )}
 
             {/* ── Dept Filter ─────────────────────────────── */}
-            <div className="dash-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', background: '#fff', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <span className="dash-filter-label" style={{ fontWeight: 600, color: '#475569' }}>Department Filter:</span>
+            <div className="card-premium" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <FiLayers style={{ color: 'var(--clr-primary)' }} size={20} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filter Department</span>
+                </div>
                 <select
                     className="fa-select"
+                    style={{ background: 'transparent', border: '1px solid var(--clr-border)', borderRadius: '10px', padding: '0.5rem 1rem', fontSize: '0.9rem', color: 'var(--clr-text)', minWidth: '200px' }}
                     value={dept}
                     onChange={(e) => setDept(e.target.value)}
-                    style={{ minWidth: '150px' }}
                 >
                     <option value="">All Departments</option>
                     {deptList.map(d => (
@@ -278,19 +297,18 @@ const AdminDashboard = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 {/* ── Feedback Period Settings ───────── */}
-                <div className="system-settings-panel" style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', height: '100%' }}>
+                <div className="system-settings-panel">
                     <div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiAlertTriangle size={16} color="#088F8F" /> Feedback Period Settings</h3>
-                        <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--clr-text-3)' }}>Control when students are allowed to submit or edit their feedback.</p>
+                        <h3><FiAlertTriangle size={16} /> Feedback Period Settings</h3>
+                        <p>Control when students are allowed to submit or edit their feedback.</p>
                     </div>
 
                     <form onSubmit={handleUpdateSettings} style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', flexWrap: 'wrap' }}>
                         <div className="input-group" style={{ margin: 0, minWidth: '150px' }}>
-                            <label style={{ fontSize: '0.8rem' }}>Status</label>
+                            <label>Status</label>
                             <select
                                 value={settings.isFeedbackOpen.toString()}
                                 onChange={(e) => setSettings({ ...settings, isFeedbackOpen: e.target.value === 'true' })}
-                                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--clr-border-2)' }}
                             >
                                 <option value="true">Open</option>
                                 <option value="false">Closed</option>
@@ -298,22 +316,20 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="input-group" style={{ margin: 0, minWidth: '200px' }}>
-                            <label style={{ fontSize: '0.8rem' }}>Start Date (Optional)</label>
+                            <label>Start Date</label>
                             <input
                                 type="datetime-local"
                                 value={settings.feedbackStartDate}
                                 onChange={(e) => setSettings({ ...settings, feedbackStartDate: e.target.value })}
-                                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--clr-border-2)', width: '100%' }}
                             />
                         </div>
 
                         <div className="input-group" style={{ margin: 0, minWidth: '200px' }}>
-                            <label style={{ fontSize: '0.8rem' }}>End Date (Optional)</label>
+                            <label>End Date</label>
                             <input
                                 type="datetime-local"
                                 value={settings.feedbackDeadline}
                                 onChange={(e) => setSettings({ ...settings, feedbackDeadline: e.target.value })}
-                                style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--clr-border-2)', width: '100%' }}
                             />
                         </div>
 
@@ -321,7 +337,7 @@ const AdminDashboard = () => {
                             type="submit"
                             className="btn btn-primary"
                             disabled={updatingSettings}
-                            style={{ height: '37px', padding: '0 1rem' }}
+                            style={{ height: '42px', padding: '0 1.5rem' }}
                         >
                             {updatingSettings ? 'Saving...' : 'Save Settings'}
                         </button>
@@ -329,17 +345,17 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* ── System Status ──────────────────── */}
-                <div style={{ padding: '1.5rem', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.95rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#69db7c' }} /> System Status
+                <div className="card-premium" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#69db7c' }} /> System Status
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#40c057' }} />
                             All systems operational
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#0047AB' }} />
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--clr-hover-bg)' }} />
                             Last updated: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Loading...'}
                         </div>
                     </div>
@@ -347,29 +363,29 @@ const AdminDashboard = () => {
             </div>
 
             {/* ── KPI Cards ───────────────────────────────── */}
-            <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+            <div className="kpi-grid" style={{ marginBottom: '2.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
                 <KpiCard
-                    icon={<FiMessageSquare size={18} />}
+                    icon={<FiMessageSquare size={20} />}
                     label="Total Feedback" value={summary?.totalFeedback ?? 0}
-                    sub="All-time anonymous submissions" color="#0047AB"
+                    sub="Aggregated submissions" color="#685D54"
                 />
                 <KpiCard
-                    icon={<FiStar size={18} />}
-                    label="Overall Avg Rating"
+                    icon={<FiStar size={20} />}
+                    label="Avg Rating"
                     value={`${fmt(summary?.avgOverallRating)} / 5`}
-                    sub="Across all departments" color="#088F8F"
+                    sub="Institutional average" color="#A39382"
                 />
                 <KpiCard
-                    icon={<FiLayers size={18} />}
-                    label="Active Departments"
+                    icon={<FiLayers size={20} />}
+                    label="Active Depts"
                     value={`${summary?.activeDepartments ?? 0} / ${summary?.totalDepartments ?? 8}`}
-                    sub="With at least one feedback" color="#6F8FAF"
+                    sub="Current participation" color="#685D54"
                 />
                 <KpiCard
-                    icon={<FiBook size={18} />}
-                    label="Subjects Rated"
+                    icon={<FiBook size={20} />}
+                    label="Subjects"
                     value={summary?.subjectsRated ?? 0}
-                    sub="Unique subjects with feedback" color="#A7C7E7"
+                    sub="Unique rated courses" color="#A39382"
                 />
             </div>
 
@@ -459,22 +475,25 @@ const AdminDashboard = () => {
 
 // ── Small reusable components ──────────────────────────────────────────────
 const KpiCard = ({ icon, label, value, sub, color }) => (
-    <div className="kpi-card" style={{ '--kpi-color': color }}>
-        <div className="kpi-icon" style={{ background: `${color}18`, color }}>
+    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
+        <div className="icon-box" style={{ background: `${color}15`, color: color, border: `1px solid ${color}30` }}>
             {icon}
         </div>
         <div>
-            <div className="kpi-label">{label}</div>
-            <div className="kpi-value" style={{ color }}>{value}</div>
-            <div className="kpi-sub">{sub}</div>
+            <div className="kpi-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>{label}</div>
+            <div className="kpi-value" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{value}</div>
+            <div className="kpi-sub" style={{ fontSize: '0.75rem', color: 'var(--clr-text-2)', marginTop: '0.1rem' }}>{sub}</div>
         </div>
     </div>
 );
 
 const NoData = () => (
-    <div className="empty-state">
-        <FiInbox size={28} style={{ color: '#A7C7E7', marginBottom: '0.5rem' }} />
-        <span>No data yet</span>
+    <div className="empty-state" style={{ padding: '3rem 1rem' }}>
+        <div className="icon-box" style={{ background: 'var(--clr-bg)', color: 'var(--clr-text)', marginBottom: '1.25rem', width: '60px', height: '60px', border: '1px solid var(--clr-border)' }}>
+            <FiInbox size={24} />
+        </div>
+        <span style={{ fontWeight: 800, color: 'var(--clr-text-on-oat)', textTransform: 'uppercase', fontSize: '0.85rem' }}>No analytics available</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-3)', marginTop: '0.5rem' }}>Check back later once more feedback is collected</span>
     </div>
 );
 

@@ -259,7 +259,7 @@ const StudentRegister = () => {
 
                 <p style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--clr-text-3)' }}>
                     Already have an account?{' '}
-                    <Link to="/login/student" id="back-to-login-link" style={{ color: 'var(--clr-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                    <Link to="/login" id="back-to-login-link" style={{ color: 'var(--clr-primary)', fontWeight: 600, textDecoration: 'none' }}>
                         Sign In →
                     </Link>
                 </p>

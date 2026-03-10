@@ -24,7 +24,7 @@ const DEFAULT_DOMAINS = [
             { text: "How would you rate the service speed?", type: "rating", required: true },
             { text: "Any suggestions for improvement?", type: "text", required: false },
         ],
-        residenceRestriction: "hosteller",
+        residenceRestriction: "none",
     },
     {
         name: "Hostel", slug: "hostel", icon: "FiHome",

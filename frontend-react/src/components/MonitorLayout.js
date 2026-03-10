@@ -22,7 +22,12 @@ const MonitorLayout = ({ children, title = 'Monitoring Dashboard' }) => {
         <div className="admin-layout">
             <aside className="sidebar" id="monitor-sidebar">
                 <div className="sidebar-logo">
-                    <CampusLensLogo iconSize={34} />
+                    <div className="brand">
+                        <div className="brand-icon">
+                            <CampusLensLogo iconSize={34} hideText />
+                        </div>
+                        <span className="brand-text">CampusLens</span>
+                    </div>
                 </div>
                 <nav className="sidebar-nav">
                     <div className="nav-section">
@@ -37,7 +42,7 @@ const MonitorLayout = ({ children, title = 'Monitoring Dashboard' }) => {
                     </div>
                 </nav>
                 <div className="sidebar-footer">
-                    <button className="nav-item" style={{ color: 'var(--clr-danger)' }} onClick={handleLogout}>
+                    <button className="nav-item" style={{ color: '#ff4d4d' }} onClick={handleLogout}>
                         <span className="nav-icon"><FiLogOut size={16} /></span> Logout
                     </button>
                 </div>
@@ -49,7 +54,7 @@ const MonitorLayout = ({ children, title = 'Monitoring Dashboard' }) => {
                         <div className="user-chip">
                             <div className="user-avatar" style={{ background: 'var(--clr-primary)' }}>{initials}</div>
                             <span>{user?.name}</span>
-                            <span className="badge" style={{ background: 'var(--clr-primary)', color: '#fff', marginLeft: '0.25rem' }}>{roleLabel}</span>
+                            <span className="badge badge-primary">{roleLabel}</span>
                         </div>
                     </div>
                 </header>

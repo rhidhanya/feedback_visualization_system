@@ -35,23 +35,28 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
             {!noSidebar && (
             <aside className="sidebar" id="admin-sidebar">
                 <div className="sidebar-logo">
-                    <CampusLensLogo iconSize={34} />
+                    <div className="brand">
+                        <div className="brand-icon">
+                            <CampusLensLogo iconSize={36} hideText />
+                        </div>
+                        <span className="brand-text">CampusLens</span>
+                    </div>
                 </div>
 
-                <nav className="sidebar-nav">
-                    <div className="nav-section">
-                        <div className="nav-label">Main</div>
+                <nav className="sidebar-nav" style={{ padding: '0 1rem' }}>
+                    <div className="nav-section" style={{ marginBottom: '1.5rem' }}>
+                        <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Main</div>
                         {adminNavMain.map(item => (
-                            <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+                            <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
                                 <span className="nav-icon">{item.icon}</span>{item.label}
                             </NavLink>
                         ))}
                     </div>
                     {showManagement && (
-                        <div className="nav-section" style={{ marginTop: '1.25rem' }}>
-                            <div className="nav-label">Management</div>
+                        <div className="nav-section">
+                            <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Management</div>
                             {adminNavManage.map(item => (
-                                <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+                                <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
                                     <span className="nav-icon">{item.icon}</span>{item.label}
                                 </NavLink>
                             ))}
@@ -59,11 +64,11 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                     )}
                 </nav>
 
-                <div className="sidebar-footer">
+                <div className="sidebar-footer" style={{ padding: '1.5rem 1rem', borderTop: '1px solid var(--clr-border)' }}>
                     <button
                         id="logout-btn"
                         className="nav-item"
-                        style={{ color: 'var(--clr-danger)' }}
+                        style={{ color: '#e57373', width: '100%', background: 'rgba(211, 47, 47, 0.05)' }}
                         onClick={handleLogout}
                     >
                         <span className="nav-icon"><FiLogOut size={16} /></span> Logout
@@ -77,10 +82,10 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                 <header className="topbar">
                     <span className="topbar-title">{title}</span>
                     <div className="topbar-right">
-                        <div className="user-chip">
-                            <div className="user-avatar">{initials}</div>
-                            <span>{user?.name}</span>
-                            <span className="badge badge-primary" style={{ marginLeft: '0.25rem' }}>
+                        <div className="user-chip" style={{ background: 'rgba(229, 222, 210, 0.1)', border: '1px solid var(--clr-border)', color: 'var(--clr-text)' }}>
+                            <div className="user-avatar" style={{ background: 'var(--clr-surface)', color: 'var(--clr-primary)' }}>{initials}</div>
+                            <span style={{ fontWeight: 600 }}>{user?.name}</span>
+                            <span className="badge badge-primary">
                                 {user?.role === 'dean' ? 'Dean' : user?.role === 'principal' ? 'Principal' : 'Admin'}
                             </span>
                         </div>

@@ -4,41 +4,13 @@ import GlobalToast from '../components/GlobalToast';
 
 const AuthContext = createContext();
 
-// ── Portal Mapping Helpers ────────────────────────────────────────────────
-const getContextFromRole = (role) => {
-    if (role === 'admin') return 'admin';
-    if (role === 'student') return 'student';
-    if (role === 'faculty') return 'faculty';
-    if (role === 'hod') return 'hod';
-    if (['principal', 'dean'].includes(role)) return 'principal';
-    if (role === 'domain_head') return 'incharge';
-    return 'general';
-};
-
-const getPortalContext = () => {
-    const path = window.location.pathname.toLowerCase();
-    
-    // Check for dashboard/home paths
-    if (path.startsWith('/admin')) return 'admin';
-    if (path.startsWith('/student')) return 'student';
-    if (path.startsWith('/faculty')) return 'faculty';
-    if (path.startsWith('/hod')) return 'hod';
-    if (path.startsWith('/principal') || path.startsWith('/monitor') || path.includes('principal')) return 'principal';
-    if (path.startsWith('/domain-head') || path.includes('incharge') || path.includes('-dashboard')) return 'incharge';
-    
-    // Check for login paths to enable session restoration on login screens
-    if (path.includes('/login/student') || path.includes('/student-login') || path.includes('/student/login')) return 'student';
-    if (path.includes('/admin/login')) return 'admin';
-    if (path.includes('/login/staff') || path.includes('/staff-login')) return 'staff';
-    
-    return 'general';
-};
-
-const getKeys = (overrideRole = null) => {
-    const ctx = overrideRole ? getContextFromRole(overrideRole) : getPortalContext();
+const getKeys = () => {
+    const isLocalAdmin = window.location.pathname.startsWith('/admin');
+    const prefix = isLocalAdmin ? 'admin_' : 'campuslens_';
     return {
-        TOKEN: `${ctx}_auth_token`,
-        USER: `${ctx}_auth_user`
+        TOKEN: `${prefix}auth_token`,
+        USER: `${prefix}auth_user`,
+        isLocalAdmin
     };
 };
 
@@ -79,30 +51,19 @@ export const AuthProvider = ({ children }) => {
 
     // ── Logout ─────────────────────────────────────────────────────────────
     const logout = useCallback(() => {
-        // Use generic logout (clears based on current URL)
         const { TOKEN, USER } = getKeys();
         
-        // Also try to clear based on current user role if we have it in state
-        const roleCtx = user?.role ? getContextFromRole(user.role) : null;
-        if (roleCtx) {
-            sessionStorage.removeItem(`${roleCtx}_auth_token`);
-            sessionStorage.removeItem(`${roleCtx}_auth_user`);
-            localStorage.removeItem(`${roleCtx}_auth_token`);
-            localStorage.removeItem(`${roleCtx}_auth_user`);
-        }
-
         sessionStorage.removeItem(TOKEN);
         sessionStorage.removeItem(USER);
         localStorage.removeItem(TOKEN);
         localStorage.removeItem(USER);
         setToken(null);
         setUser(null);
-    }, [user]);
+    }, []);
 
     // ── Shared helper to persist auth state (isolated by portal/role) ────
-    const persist = (data) => {
-        // Use the role from the server response to determine the correct namespace
-        const { TOKEN, USER } = getKeys(data.user.role);
+    const persist = useCallback((data) => {
+        const { TOKEN, USER } = getKeys();
         
         // ALWAYS use localStorage as prioritized by the user for persistence
         localStorage.setItem(TOKEN, data.token);
@@ -111,7 +72,7 @@ export const AuthProvider = ({ children }) => {
         // Also sync state
         setToken(data.token);
         setUser(data.user);
-    };
+    }, []);
 
     // ── Verify session on load ──────────────────────────────────────────────
     useEffect(() => {
@@ -223,7 +184,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             return { success: false, message: getLoginErrorMessage(err) };
         } finally { setLoading(false); }
-    }, []); // eslint-disable-line
+    }, [persist]);
 
     // ── Student registration ───────────────────────────────────────────────
     const registerStudent = useCallback(async (formData) => {

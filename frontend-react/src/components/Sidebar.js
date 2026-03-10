@@ -21,7 +21,7 @@ const Sidebar = ({ user }) => {
                 <div className="brand" onClick={() => navigate('/admin/dashboard')}>
                     <div className="brand-icon">
                         {/* Placeholder for EdTech branding */}
-                        <div style={{ width: 30, height: 30, background: 'var(--clr-primary)', borderRadius: 4 }}></div>
+                        <div style={{ width: 30, height: 30, background: 'var(--clr-logo-bg)', borderRadius: 4 }}></div>
                     </div>
                     {!collapsed && <span className="brand-text">CampusLens</span>}
                 </div>

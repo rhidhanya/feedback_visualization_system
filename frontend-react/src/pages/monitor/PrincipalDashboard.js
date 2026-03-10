@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
-import { FiTrendingUp, FiMessageSquare, FiStar, FiAlertTriangle, FiActivity, FiBook, FiTruck, FiCoffee, FiHome, FiShield } from 'react-icons/fi';
+import { FiTrendingUp, FiMessageSquare, FiStar, FiAlertTriangle, FiActivity, FiBook, FiTruck, FiCoffee, FiHome, FiShield, FiUser, FiMail } from 'react-icons/fi';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -17,7 +17,6 @@ import {
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import MessageModal from '../../components/MessageModal';
-import IssueAlert from '../../components/IssueAlert';
 import AdminLayout from '../../components/AdminLayout';
 
 ChartJS.register(
@@ -33,13 +32,37 @@ ChartJS.register(
     Filler
 );
 
+const DOMAIN_HEADS = {
+    mess: { name: "Ms. Sunita Sharma", email: "mess-manager@bitsathy.in", role: "Mess Manager" },
+    sanitation: { name: "Ms. Kavitha Nair", email: "sanitation-head@bitsathy.in", role: "Sanitation Head" },
+    hostel: { name: "Mr. Anil Mehta", email: "hostel-manager@bitsathy.in", role: "Hostel Manager" },
+    transport: { name: "Mr. Ravi Kumar", email: "transport-head@bitsathy.in", role: "Transport Head" },
+    academics: { name: "Institutional Head", email: "principal@bitsathy.in", role: "Principal" }
+};
+
 const PrincipalDashboard = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [activeDomain, setActiveDomain] = useState('academics'); // academics, transport, mess, hostel, sanitation
     const [data, setData] = useState(null);
     const [domainData, setDomainData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showMessages, setShowMessages] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
+
+    const fetchMessagesCount = useCallback(async () => {
+        try {
+            const res = await api.get('/messages/unread/count');
+            setUnreadMessages(res.data.count || 0);
+        } catch (err) {
+            console.error('Failed to fetch unread count:', err);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchMessagesCount();
+        const interval = setInterval(fetchMessagesCount, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, [fetchMessagesCount]);
 
     const fetchAll = useCallback(async () => {
         setLoading(true);
@@ -78,7 +101,7 @@ const PrincipalDashboard = () => {
         datasets: [{
             label: 'Avg Rating',
             data: data.byDepartment.map(d => d.avgRating),
-            backgroundColor: data.byDepartment.map((_, i) => ['#5d3a6f', '#725483', '#897098', '#aa98b5', '#cbc1d2'][i % 5]),
+            backgroundColor: data.byDepartment.map((_, i) => ['#A39382', '#685D54', '#E5DED2', '#FBF7F4'][i % 4]),
             borderRadius: 8,
         }]
     } : { labels: [], datasets: [] };
@@ -87,7 +110,7 @@ const PrincipalDashboard = () => {
         labels: ['Responded', 'Not Responded'],
         datasets: [{
             data: [data?.summary?.totalFeedback || 0, (data?.summary?.totalStudents || 0) - (data?.summary?.totalFeedback || 0)],
-            backgroundColor: ['var(--clr-primary)', '#e2e8f0'],
+            backgroundColor: ['#A39382', '#685D54'], // Taupe, Mocha
             hoverOffset: 4
         }]
     };
@@ -96,25 +119,26 @@ const PrincipalDashboard = () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { labels: { color: '#475569', font: { family: 'Inter', size: 12 } } },
+            legend: { labels: { color: '#E5DED2', font: { family: 'Inter', size: 12, weight: 600 } } },
             tooltip: {
-                backgroundColor: '#fff',
-                titleColor: '#0f172a',
-                bodyColor: '#475569',
-                borderColor: '#e2e8f0',
+                backgroundColor: '#232323',
+                titleColor: '#E5DED2',
+                bodyColor: '#E5DED2',
+                borderColor: '#685D54',
                 borderWidth: 1,
                 padding: 12,
+                cornerRadius: 4,
             }
         },
         scales: {
             y: {
                 min: 0,
                 max: 5,
-                ticks: { color: '#475569', font: { family: 'Inter', size: 11 } },
-                grid: { color: '#e2e8f0' }
+                ticks: { color: '#E5DED2', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { color: 'rgba(104, 93, 84, 0.25)' }
             },
             x: {
-                ticks: { color: '#475569', font: { family: 'Inter', size: 11 } },
+                ticks: { color: '#E5DED2', font: { family: 'Inter', size: 11, weight: 600 } },
                 grid: { display: false }
             }
         }
@@ -127,49 +151,79 @@ const PrincipalDashboard = () => {
         datasets: [{
             label: 'Avg Rating Trend',
             data: data?.trend?.map(t => t.avgRating || 0) || [],
-            borderColor: '#5d3a6f',
-            backgroundColor: 'rgba(93, 58, 111, 0.1)',
+            borderColor: '#A39382', // Taupe
+            backgroundColor: 'rgba(163, 147, 130, 0.1)',
             fill: true,
             tension: 0.4,
             pointRadius: 5,
-            pointBackgroundColor: '#5d3a6f',
+            pointBackgroundColor: '#232323',
         }]
     } : {
         labels: domainData?.semesterTrend?.map(t => `Sem ${t.semester}`) || [],
         datasets: [{
             label: 'Avg Rating',
             data: domainData?.semesterTrend?.map(t => t.avgRating) || [],
-            borderColor: 'var(--clr-accent)',
-            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+            borderColor: '#685D54', // Mocha
+            backgroundColor: 'rgba(104, 93, 84, 0.1)',
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: '#232323',
         }]
     };
 
     return (
         <AdminLayout title="Principal Dashboard" noSidebar={true}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="dash-header">
                 <div>
-                    <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>
-                        Welcome, Dr. {user.name.split(' ')[0]}
-                    </h1>
-                    <p style={{ color: '#64748b' }}>Institutional Head</p>
+                    <h2>Welcome Dr. {user.name}</h2>
+                    <p>Institutional Head</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <button
                         onClick={() => setShowMessages(true)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e2e8f0', color: '#0f172a', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#cbd5e1'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#e2e8f0'}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--clr-primary)', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', position: 'relative' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-hover-bg)'; e.currentTarget.style.color = 'var(--clr-hover-text)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--clr-primary)'; e.currentTarget.style.color = '#fff'; }}
                     >
                         <FiMessageSquare /> Send Message
+                        {unreadMessages > 0 && (
+                            <span style={{ 
+                                position: 'absolute', 
+                                top: '-6px', 
+                                right: '-6px', 
+                                background: 'var(--clr-mocha)', 
+                                color: '#fff', 
+                                fontSize: '0.65rem', 
+                                minWidth: '18px', 
+                                height: '18px', 
+                                padding: '0 4px',
+                                borderRadius: '10px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                fontWeight: 700, 
+                                border: '2px solid #fff', 
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.15)' 
+                            }}>
+                                {unreadMessages}
+                            </span>
+                        )}
                     </button>
 
-                    <div style={{ padding: '0.5rem 1rem', background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--clr-primary-lt)' }}>
-                        <FiShield /> EXECUTIVE ACCESS
+                    <div style={{ padding: '0.65rem 1.25rem', background: 'var(--clr-primary)', color: 'var(--clr-text)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--clr-border)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        <FiShield size={14} /> EXECUTIVE ACCESS
                     </div>
-                    <IssueAlert role="principal" />
+                    
+                    <button 
+                        onClick={logout}
+                        className="btn btn-ghost"
+                        style={{ color: '#e57373', borderColor: 'rgba(211, 47, 47, 0.2)', padding: '0.65rem 1.25rem' }}
+                    >
+                        Logout
+                    </button>
+                    {/* Removed IssueAlert as requested */}
                 </div>
             </div>
 
@@ -185,15 +239,7 @@ const PrincipalDashboard = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveDomain(tab.id)}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            padding: '0.75rem 1.25rem', borderRadius: '12px', border: 'none',
-                            background: activeDomain === tab.id ? 'var(--clr-primary)' : '#fff',
-                            color: activeDomain === tab.id ? '#fff' : '#64748b',
-                            fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-                            boxShadow: activeDomain === tab.id ? '0 10px 15px -3px rgba(93, 58, 111, 0.3)' : '0 1px 3px rgba(0,0,0,0.1)',
-                            whiteSpace: 'nowrap'
-                        }}
+                        className={`btn ${activeDomain === tab.id ? 'btn-primary' : 'btn-ghost'}`}
                     >
                         {tab.icon} {tab.label}
                     </button>
@@ -215,14 +261,14 @@ const PrincipalDashboard = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Department Performance</h3>
+                        <div className="chart-card">
+                            <h3>Department Performance</h3>
                             <div style={{ height: '300px' }}>
                                 <Bar data={deptChartData} options={chartOptions} />
                             </div>
                         </div>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Top 5 Performing Faculties</h3>
+                        <div className="chart-card">
+                            <h3>Top 5 Performing Faculties</h3>
                             <div style={{ height: '300px' }}>
                                 <Bar 
                                     data={{
@@ -230,8 +276,8 @@ const PrincipalDashboard = () => {
                                         datasets: [{
                                             label: 'Avg Rating',
                                             data: data?.faculty?.slice(0, 5).map(f => f.avgRating),
-                                            backgroundColor: '#5d3a6f',
-                                            borderRadius: 8
+                                            backgroundColor: '#E5DED2', // Oat - better contrast
+                                            borderRadius: 6
                                         }]
                                     }}
                                     options={chartOptions}
@@ -241,14 +287,14 @@ const PrincipalDashboard = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Semester Wise Trend</h3>
+                        <div className="card-premium">
+                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>Semester Wise Trend</h3>
                             <div style={{ height: '300px' }}>
                                 <Line data={trendData} options={chartOptions} />
                             </div>
                         </div>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Participation</h3>
+                        <div className="card-premium">
+                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>Participation</h3>
                             <div style={{ height: '300px' }}>
                                 <Doughnut data={participationData} options={{ maintainAspectRatio: false }} />
                             </div>
@@ -259,6 +305,27 @@ const PrincipalDashboard = () => {
                 <>
                     {/* Domain Specific Stats */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <div className="card-premium" style={{ gridColumn: '1 / -1', borderLeft: '6px solid var(--clr-primary)', padding: '2rem', background: 'var(--clr-surface)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                                <div className="icon-box" style={{ width: 72, height: 72, background: 'rgba(104, 93, 84, 0.1)', color: 'var(--clr-text-on-oat)', border: '1px solid var(--clr-border)' }}>
+                                    <FiShield size={36} />
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clr-mocha)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Domain Leadership</p>
+                                    <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)', letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+                                        {DOMAIN_HEADS[activeDomain]?.name}
+                                    </h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--clr-text-2)', fontSize: '0.9rem' }}>
+                                            <FiUser size={14} /> <strong>{DOMAIN_HEADS[activeDomain]?.role}</strong>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--clr-text-3)', fontSize: '0.85rem' }}>
+                                            <FiMail size={14} /> {DOMAIN_HEADS[activeDomain]?.email}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <StatCard icon={<FiMessageSquare />} label="Total Feedback" value={domainData?.totalFeedback || 0} color="var(--clr-primary)" bg="var(--clr-primary-lt)" />
                         <StatCard icon={<FiStar />} label="Avg Rating" value={`${domainData?.avgRating || 0} / 5`} color="var(--clr-accent)" bg="var(--clr-accent-lt)" />
                         <StatCard icon={<FiAlertTriangle />} label="Negative Feedback" value={domainData?.negativeFeedback || 0} color="#dc2626" bg="#fef2f2" />
@@ -266,20 +333,25 @@ const PrincipalDashboard = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Question-wise Average</h3>
+                        <div className="chart-card">
+                            <h3>Question-wise Average</h3>
                             <div style={{ height: '350px' }}>
                                 <Bar
                                     data={{
                                         labels: domainData?.questionStats?.map(q => q.question?.slice(0, 30) + '...') || [],
-                                        datasets: [{ label: 'Avg Rating', data: domainData?.questionStats?.map(q => q.avgRating) || [], backgroundColor: 'var(--clr-primary)', borderRadius: 4 }]
+                                        datasets: [{ 
+                                            label: 'Avg Rating', 
+                                            data: domainData?.questionStats?.map(q => q.avgRating) || [], 
+                                            backgroundColor: '#E5DED2', // Oat
+                                            borderRadius: 4 
+                                        }]
                                     }}
-                                    options={{ maintainAspectRatio: false, indexAxis: 'y', scales: { x: { min: 0, max: 5 } } }}
+                                    options={{ ...chartOptions, indexAxis: 'y' }}
                                 />
                             </div>
                         </div>
-                        <div className="card-premium" style={{ background: '#fff', padding: '1.75rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 700 }}>Rating Trend</h3>
+                        <div className="chart-card">
+                            <h3>Rating Trend</h3>
                             <div style={{ height: '350px' }}>
                                 <Line data={trendData} options={chartOptions} />
                             </div>
@@ -298,12 +370,12 @@ const PrincipalDashboard = () => {
     );
 };
 
-const StatCard = ({ icon, label, value, color, bg }) => (
-    <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1.2rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-        <div style={{ background: bg, color: color, padding: '1rem', borderRadius: '16px' }}>{icon}</div>
+const StatCard = ({ icon, label, value, color }) => (
+    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
+        <div className="icon-box" style={{ background: 'rgba(104, 93, 84, 0.1)', color: 'var(--clr-text-on-oat)', border: '1px solid var(--clr-border)' }}>{icon}</div>
         <div>
-            <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>{label}</p>
-            <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{value}</h2>
+            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>{label}</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{value}</div>
         </div>
     </div>
 );

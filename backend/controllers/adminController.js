@@ -116,15 +116,25 @@ exports.getFaculty = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
+        const filter = { role: "faculty" };
+        if (req.query.department) filter.department = req.query.department;
+        if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true";
+        if (req.query.search) {
+            filter.$or = [
+                { name: { $regex: req.query.search, $options: "i" } },
+                { email: { $regex: req.query.search, $options: "i" } }
+            ];
+        }
+
         const [faculty, total] = await Promise.all([
-            User.find({ role: "faculty" })
+            User.find(filter)
                 .populate("department", "name code")
                 .populate("assignedSubjects", "name subjectCode semester")
                 .select("-password")
                 .sort({ name: 1 })
                 .skip(skip)
                 .limit(limit),
-            User.countDocuments({ role: "faculty" })
+            User.countDocuments(filter)
         ]);
 
         res.json({ 
@@ -326,15 +336,40 @@ exports.deleteSubject = async (req, res) => {
 // GET /api/admin/students
 exports.getStudents = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
         const filter = { role: "student" };
         if (req.query.department) filter.department = req.query.department;
         if (req.query.semester) filter.semester = Number(req.query.semester);
+        if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true";
+        if (req.query.search) {
+            filter.$or = [
+                { name: { $regex: req.query.search, $options: "i" } },
+                { email: { $regex: req.query.search, $options: "i" } },
+                { rollNumber: { $regex: req.query.search, $options: "i" } }
+            ];
+        }
 
-        const students = await User.find(filter)
-            .populate("department", "name code")
-            .select("-password")
-            .sort({ name: 1 });
-        res.json({ success: true, count: students.length, data: students });
+        const [students, total] = await Promise.all([
+            User.find(filter)
+                .populate("department", "name code")
+                .select("-password")
+                .sort({ name: 1 })
+                .skip(skip)
+                .limit(limit),
+            User.countDocuments(filter)
+        ]);
+
+        res.json({ 
+            success: true, 
+            count: students.length, 
+            total,
+            pages: Math.ceil(total / limit),
+            currentPage: page,
+            data: students 
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -368,11 +403,39 @@ exports.createStudent = async (req, res) => {
 // GET /api/admin/hod
 exports.getHods = async (req, res) => {
     try {
-        const hods = await User.find({ role: "hod" })
-            .populate("department", "name code")
-            .select("-password")
-            .sort({ name: 1 });
-        res.json({ success: true, count: hods.length, data: hods });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const filter = { role: "hod" };
+        if (req.query.department) filter.department = req.query.department;
+        if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true";
+        if (req.query.search) {
+            filter.$or = [
+                { name: { $regex: req.query.search, $options: "i" } },
+                { email: { $regex: req.query.search, $options: "i" } },
+                { hodId: { $regex: req.query.search, $options: "i" } }
+            ];
+        }
+
+        const [hods, total] = await Promise.all([
+            User.find(filter)
+                .populate("department", "name code")
+                .select("-password")
+                .sort({ name: 1 })
+                .skip(skip)
+                .limit(limit),
+            User.countDocuments(filter)
+        ]);
+
+        res.json({ 
+            success: true, 
+            count: hods.length, 
+            total,
+            pages: Math.ceil(total / limit),
+            currentPage: page,
+            data: hods 
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }

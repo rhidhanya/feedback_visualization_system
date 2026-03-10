@@ -33,8 +33,8 @@ const Login = () => {
 
             const res = await axios.post(endpoint, formData);
             console.log(res.data);
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
+            localStorage.setItem('campuslens_auth_token', res.data.token);
+            localStorage.setItem('campuslens_auth_user', JSON.stringify(res.data.user));
 
             if (res.data.user.role === 'admin') {
                 navigate('/admin');
@@ -57,39 +57,37 @@ const Login = () => {
             justifyContent: 'center',
             alignItems: 'center',
             minHeight: '100vh',
-            background: 'var(--bg-light)',
+            background: 'var(--clr-bg)',
             fontFamily: 'Inter, sans-serif'
         }}>
             <div style={{
-                background: 'var(--card-bg)',
+                background: 'var(--clr-surface)',
                 padding: '40px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-color)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                borderRadius: '16px',
+                border: '1px solid var(--clr-border)',
+                boxShadow: 'var(--shadow-lg)',
                 width: '100%',
-                maxWidth: '420px'
+                maxWidth: '430px'
             }}>
                 <div style={{ marginBottom: '32px', textAlign: 'center' }}>
                     <div style={{
-                        background: 'var(--accent-primary)',
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '8px',
+                        background: 'var(--clr-logo-bg)',
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '12px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontWeight: '800',
-                        color: 'white',
-                        fontSize: '1.5rem',
-                        margin: '0 auto 16px'
+                        margin: '0 auto 16px',
+                        padding: '12px'
                     }}>
-                        <img src={logo} alt="CampusLens Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src={logo} alt="CL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--clr-primary)', marginBottom: '8px' }}>
                         Welcome Back
                     </h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Sign in to your account
+                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.95rem' }}>
+                        CampusLens Analytics & Feedback
                     </p>
                 </div>
 
@@ -101,14 +99,15 @@ const Login = () => {
                         borderRadius: '8px',
                         marginBottom: '20px',
                         fontSize: '0.9rem',
-                        border: '1px solid var(--clr-danger-lt)'
+                        border: '1px solid var(--clr-danger-lt)',
+                        textAlign: 'center'
                     }}>
                         {error}
                     </div>
                 )}
 
                 {/* ── Tabs ── */}
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--clr-surface-2)', padding: '0.4rem', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', background: 'var(--clr-primary-lt)', padding: '0.35rem', borderRadius: '12px' }}>
                     {['student', 'faculty', 'hod', 'admin'].map(tab => (
                         <button
                             key={tab}
@@ -119,12 +118,12 @@ const Login = () => {
                                 padding: '0.6rem 0',
                                 border: 'none',
                                 background: activeTab === tab ? '#fff' : 'transparent',
-                                color: activeTab === tab ? 'var(--clr-primary)' : 'var(--clr-text-2)',
+                                color: activeTab === tab ? 'var(--clr-primary)' : 'var(--clr-text-3)',
                                 fontWeight: activeTab === tab ? '700' : '600',
                                 fontSize: '0.8rem',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
-                                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                boxShadow: activeTab === tab ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
                                 textTransform: 'capitalize',
                                 transition: 'all 0.2s',
                             }}
@@ -138,11 +137,13 @@ const Login = () => {
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{
                             display: 'block',
-                            color: 'var(--text-main)',
-                            fontSize: '0.9rem',
+                            color: 'var(--clr-text)',
+                            fontSize: '0.85rem',
                             fontWeight: '600',
-                            marginBottom: '8px'
-                        }}>Email</label>
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.03em'
+                        }}>Email Address</label>
                         <input
                             type="email"
                             name="email"
@@ -151,28 +152,30 @@ const Login = () => {
                             style={{
                                 width: '100%',
                                 padding: '12px 14px',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '8px',
+                                border: '1px solid var(--clr-border)',
+                                borderRadius: '10px',
                                 fontSize: '0.95rem',
                                 outline: 'none',
-                                transition: 'border 0.2s ease',
-                                fontFamily: 'Inter, sans-serif'
+                                transition: 'all 0.2s',
+                                background: '#f8fafc'
                             }}
-                            onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-                            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+                            onFocus={(e) => { e.target.style.borderColor = 'var(--clr-primary)'; e.target.style.background = '#fff'; }}
+                            onBlur={(e) => { e.target.style.borderColor = 'var(--clr-border)'; e.target.style.background = '#f8fafc'; }}
                             required
                         />
                     </div>
 
                     {activeTab === 'faculty' && (
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px' }}>Faculty ID</label>
+                            <label style={{ display: 'block', color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>Faculty ID</label>
                             <input
                                 type="text"
                                 name="facultyId"
                                 value={facultyId}
                                 onChange={onChange}
-                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.95rem', outline: 'none', transition: 'border 0.2s ease', fontFamily: 'Inter, sans-serif' }}
+                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--clr-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', background: '#f8fafc' }}
+                                onFocus={(e) => { e.target.style.borderColor = 'var(--clr-primary)'; e.target.style.background = '#fff'; }}
+                                onBlur={(e) => { e.target.style.borderColor = 'var(--clr-border)'; e.target.style.background = '#f8fafc'; }}
                                 required
                             />
                         </div>
@@ -180,13 +183,15 @@ const Login = () => {
 
                     {activeTab === 'hod' && (
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px' }}>HOD ID</label>
+                            <label style={{ display: 'block', color: 'var(--clr-text)', fontSize: '0.85rem', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>HOD ID</label>
                             <input
                                 type="text"
                                 name="hodId"
                                 value={hodId}
                                 onChange={onChange}
-                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.95rem', outline: 'none', transition: 'border 0.2s ease', fontFamily: 'Inter, sans-serif' }}
+                                style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--clr-border)', borderRadius: '10px', fontSize: '0.95rem', outline: 'none', background: '#f8fafc' }}
+                                onFocus={(e) => { e.target.style.borderColor = 'var(--clr-primary)'; e.target.style.background = '#fff'; }}
+                                onBlur={(e) => { e.target.style.borderColor = 'var(--clr-border)'; e.target.style.background = '#f8fafc'; }}
                                 required
                             />
                         </div>
@@ -195,10 +200,12 @@ const Login = () => {
                     <div style={{ marginBottom: '24px' }}>
                         <label style={{
                             display: 'block',
-                            color: 'var(--text-main)',
-                            fontSize: '0.9rem',
+                            color: 'var(--clr-text)',
+                            fontSize: '0.85rem',
                             fontWeight: '600',
-                            marginBottom: '8px'
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.03em'
                         }}>Password</label>
                         <input
                             type="password"
@@ -208,15 +215,15 @@ const Login = () => {
                             style={{
                                 width: '100%',
                                 padding: '12px 14px',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '8px',
+                                border: '1px solid var(--clr-border)',
+                                borderRadius: '10px',
                                 fontSize: '0.95rem',
                                 outline: 'none',
-                                transition: 'border 0.2s ease',
-                                fontFamily: 'Inter, sans-serif'
+                                transition: 'all 0.2s',
+                                background: '#f8fafc'
                             }}
-                            onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-                            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+                            onFocus={(e) => { e.target.style.borderColor = 'var(--clr-primary)'; e.target.style.background = '#fff'; }}
+                            onBlur={(e) => { e.target.style.borderColor = 'var(--clr-border)'; e.target.style.background = '#f8fafc'; }}
                             required
                         />
                     </div>
@@ -226,26 +233,28 @@ const Login = () => {
                         disabled={loading}
                         style={{
                             width: '100%',
-                            background: loading ? '#ccc' : 'var(--accent-primary)',
+                            background: loading ? 'var(--clr-muted)' : 'var(--clr-primary)',
                             color: 'white',
-                            fontWeight: '600',
-                            padding: '12px',
-                            borderRadius: '8px',
+                            fontWeight: '700',
+                            padding: '14px',
+                            borderRadius: '10px',
                             border: 'none',
                             cursor: loading ? 'not-allowed' : 'pointer',
                             fontSize: '1rem',
-                            transition: 'all 0.2s ease',
-                            fontFamily: 'Inter, sans-serif'
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 12px rgba(27, 49, 76, 0.2)'
                         }}
                         onMouseEnter={(e) => {
                             if (!loading) {
-                                e.target.style.background = 'var(--accent-secondary)';
+                                e.target.style.background = 'var(--clr-hover-bg)';
+                                e.target.style.color = 'var(--clr-hover-text)';
                                 e.target.style.transform = 'translateY(-2px)';
                             }
                         }}
                         onMouseLeave={(e) => {
                             if (!loading) {
-                                e.target.style.background = 'var(--accent-primary)';
+                                e.target.style.background = 'var(--clr-primary)';
+                                e.target.style.color = 'white';
                                 e.target.style.transform = 'translateY(0)';
                             }
                         }}
@@ -254,8 +263,8 @@ const Login = () => {
                     </button>
                 </form>
 
-                <p style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    Don't have an account? <Link to="/register" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: '600' }}>Create Account</Link>
+                <p style={{ marginTop: '24px', textAlign: 'center', color: 'var(--clr-text-3)', fontSize: '0.9rem' }}>
+                    Don't have an account? <Link to="/register" style={{ color: 'var(--clr-primary)', textDecoration: 'none', fontWeight: '700' }}>Create Account</Link>
                 </p>
             </div>
         </div>

@@ -8,10 +8,10 @@ export const CampusLensLogo = ({ iconSize = 34 }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <CampusLensIcon size={iconSize} />
         <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#5d3a6f', letterSpacing: '-0.02em' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-primary)', letterSpacing: '-0.02em' }}>
                 CampusLens
             </div>
-            <div style={{ fontSize: '0.65rem', color: '#897098', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Analytics Portal</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--clr-text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Analytics Portal</div>
         </div>
     </div>
 );
@@ -21,7 +21,7 @@ export const CampusLensLogo = ({ iconSize = 34 }) => (
  * Used in login pages and anywhere a compact brand mark is needed.
  * Design: A sleek lens/aperture icon.
  */
-export const CampusLensIcon = ({ size = 34, color = "#5d3a6f" }) => {
+export const CampusLensIcon = ({ size = 34, color = "var(--clr-logo-bg)" }) => {
     return (
         <div style={{
             width: size,

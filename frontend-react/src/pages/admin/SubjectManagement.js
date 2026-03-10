@@ -3,7 +3,7 @@ import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import {
     FiPlus, FiEdit2, FiTrash2, FiBook, FiSearch,
-    FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiToggleLeft, FiToggleRight
+    FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiToggleLeft, FiToggleRight, FiUsers, FiCheckCircle, FiShield
 } from 'react-icons/fi';
 
 const CURRENT_YEAR = (() => {
@@ -209,24 +209,74 @@ const SubjectManagement = () => {
                 </div>
             </div>
 
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: 200, background: '#fff', borderRadius: 10, border: '1px solid var(--clr-border)', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem' }}>
-                    <FiSearch size={15} style={{ color: 'var(--clr-text-3)' }} />
-                    <input type="text" placeholder="Search subjects…" value={search} onChange={e => setSearch(e.target.value)}
-                        style={{ border: 'none', outline: 'none', flex: 1, fontSize: '0.875rem', background: 'transparent' }} />
-                    {search && <FiX style={{ cursor: 'pointer', color: 'var(--clr-text-3)' }} onClick={() => setSearch('')} />}
+            <div className="admin-kpi-grid">
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiBook size={22} /></div>
+                    <div className="info">
+                        <span className="label">Total Subjects</span>
+                        <span className="value">{totalItems}</span>
+                    </div>
                 </div>
-                <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
-                    style={{ padding: '0.5rem 0.875rem', borderRadius: 10, border: '1px solid var(--clr-border)', fontSize: '0.875rem', background: '#fff' }}>
-                    <option value="">All Departments</option>
-                    {departments.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
-                </select>
-                <select value={filterSem} onChange={e => setFilterSem(e.target.value)}
-                    style={{ padding: '0.5rem 0.875rem', borderRadius: 10, border: '1px solid var(--clr-border)', fontSize: '0.875rem', background: '#fff' }}>
-                    <option value="">All Semesters</option>
-                    {semOptions.map(s => <option key={s} value={s}>Semester {s}</option>)}
-                </select>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiUsers size={22} /></div>
+                    <div className="info">
+                        <span className="label">Faculty Mapped</span>
+                        <span className="value">{subjects.filter(s => s.faculty || s.facultyName).length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiCheckCircle size={22} /></div>
+                    <div className="info">
+                        <span className="label">Active Subjects</span>
+                        <span className="value">{subjects.filter(s => s.isActive).length}</span>
+                    </div>
+                </div>
+                <div className="admin-kpi-card">
+                    <div className="icon-box"><FiShield size={22} /></div>
+                    <div className="info">
+                        <span className="label">Curriculum</span>
+                        <span className="value">v2.1</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+                <div className="input-group" style={{ margin: 0, flex: 2 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Subjects</label>
+                    <div style={{ position: 'relative' }}>
+                        <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
+                        <input 
+                            type="text" 
+                            placeholder="Search by Name, Code or Faculty..." 
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                        />
+                    </div>
+                </div>
+                <div className="input-group" style={{ margin: 0, flex: 1 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
+                    <select
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        value={filterDept}
+                        onChange={e => setFilterDept(e.target.value)}
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
+                    </select>
+                </div>
+                <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
+                    <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Semester</label>
+                    <select
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        value={filterSem}
+                        onChange={e => setFilterSem(e.target.value)}
+                    >
+                        <option value="">All Semesters</option>
+                        {semOptions.map(s => <option key={s} value={s}>Semester {s}</option>)}
+                    </select>
+                </div>
             </div>
 
             {/* Table */}

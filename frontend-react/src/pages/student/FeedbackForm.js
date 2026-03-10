@@ -60,7 +60,9 @@ const FeedbackForm = () => {
             if (existingFeedback) {
                 await api.put(`/feedback/${existingFeedback._id}`, { ratings, comments });
             } else {
-                await api.post('/feedback', { subjectId, ratings, comments });
+                const subIdToSubmit = subjectId || subject?._id || subject?.id;
+                if (!subIdToSubmit) throw new Error('Subject ID missing');
+                await api.post('/feedback', { subjectId: subIdToSubmit, ratings, comments });
             }
             setSuccess(true);
             setTimeout(() => navigate('/student/home'), 2500);

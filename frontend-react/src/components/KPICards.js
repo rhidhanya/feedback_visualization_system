@@ -30,20 +30,20 @@ const KPICards = ({ stats }) => {
                 title="Avg Rating"
                 value={avgRating?.avg || 0}
                 icon={FiStar}
-                color="#f59e0b"
+                color="#A39382"
                 suffix="/5"
             />
             <KPICard
                 title="Total Feedback"
                 value={totalResponses?.count || 0}
                 icon={FiMessageSquare}
-                color="#2563eb"
+                color="#685D54"
             />
             <KPICard
                 title="Positive Sentiment"
                 value={parseFloat(positiveRate)}
                 icon={FiTrendingUp}
-                color="#10b981"
+                color="#A39382"
                 suffix="%"
             />
             <KPICard

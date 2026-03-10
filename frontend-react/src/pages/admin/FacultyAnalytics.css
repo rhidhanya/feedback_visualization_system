@@ -89,7 +89,7 @@
 
 .fa-sort-label {
     font-size: 0.72rem;
-    color: #cbc1d2;
+    color: var(--clr-text-3);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 600;
@@ -146,16 +146,16 @@
 }
 
 .fa-row--active {
-    background: #e8e0f0;
-    border-left-color: #5d3a6f;
+    background: var(--clr-primary-lt);
+    border-left-color: var(--clr-primary);
 }
 
 .fa-row-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #e8e0f0;
-    color: #5d3a6f;
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
     font-size: 1rem;
     font-weight: 700;
     display: flex;
@@ -212,7 +212,7 @@
 }
 
 .fa-detail::-webkit-scrollbar-thumb {
-    background: #dcd4e0;
+    background: var(--clr-border);
     border-radius: 2px;
 }
 
@@ -278,7 +278,7 @@
 
 .fa-meta {
     font-size: 0.8rem;
-    color: #cbc1d2;
+    color: var(--clr-text-3);
     margin: 0 0 0.45rem;
 }
 
@@ -288,8 +288,8 @@
     font-weight: 700;
     padding: 0.18rem 0.7rem;
     border-radius: 999px;
-    background: #e8e0f0;
-    color: #5d3a6f;
+    background: var(--clr-primary-lt);
+    color: var(--clr-primary);
 }
 
 .fa-kpis {
@@ -311,7 +311,7 @@
 
 .fa-kpi-lbl {
     font-size: 0.65rem;
-    color: #cbc1d2;
+    color: var(--clr-text-3);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 0.08rem;

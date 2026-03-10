@@ -8,35 +8,21 @@ const api = axios.create({
 });
 
 // Request interceptor: attach token dynamically for every request
-// ── Portal Detection for Storage Keys ───────────────────────────────────
-const getPortalContext = () => {
-    const path = window.location.pathname.toLowerCase();
-    
-    // Dashboard/Home paths
-    if (path.startsWith('/admin')) return 'admin';
-    if (path.startsWith('/student')) return 'student';
-    if (path.startsWith('/faculty')) return 'faculty';
-    if (path.startsWith('/hod')) return 'hod';
-    if (path.startsWith('/principal') || path.startsWith('/monitor') || path.includes('principal')) return 'principal';
-    if (path.startsWith('/domain-head') || path.includes('incharge') || path.includes('-dashboard')) return 'incharge';
-    
-    // Login paths
-    if (path.includes('/login/student') || path.includes('/student-login') || path.includes('/student/login')) return 'student';
-    if (path.includes('/admin/login')) return 'admin';
-    if (path.includes('/login/faculty') || path.includes('/faculty/login')) return 'faculty';
-    if (path.includes('/login/principal')) return 'principal';
-    if (path.includes('/login/hod')) return 'hod';
-    if (path.includes('/login/incharge') || path.includes('incharge-login')) return 'incharge';
-    
-    return 'general';
+// ── Helper to determine which storage keys to use ──────────────────────────
+const getAuthKeys = () => {
+    const isLocalAdmin = window.location.pathname.startsWith('/admin');
+    const prefix = isLocalAdmin ? 'admin_' : 'campuslens_';
+    return {
+        TOKEN: `${prefix}auth_token`,
+        USER: `${prefix}auth_user`
+    };
 };
 
-// Request Interceptor: Dynamically attach namespaced token
+// Request Interceptor: Dynamically attach unified token
 api.interceptors.request.use(
     (config) => {
-        const ctx = getPortalContext();
-        const tokenKey = `${ctx}_auth_token`;
-        const token = localStorage.getItem(tokenKey) || sessionStorage.getItem(tokenKey);
+        const { TOKEN } = getAuthKeys();
+        const token = localStorage.getItem(TOKEN) || sessionStorage.getItem(TOKEN);
         
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -56,26 +42,21 @@ api.interceptors.response.use(
                 return Promise.reject(err);
             }
 
-            const ctx = getPortalContext();
-            const tokenKey = `${ctx}_auth_token`;
-            const userKey = `${ctx}_auth_user`;
-
-            let storedUser = sessionStorage.getItem(userKey) || localStorage.getItem(userKey);
-            const user = storedUser ? JSON.parse(storedUser) : null;
-
-            // Clear namespaced storage
-            sessionStorage.removeItem(tokenKey);
-            sessionStorage.removeItem(userKey);
-            localStorage.removeItem(tokenKey);
-            localStorage.removeItem(userKey);
+            const { TOKEN, USER } = getAuthKeys();
+            
+            // Clear role-specific storage
+            sessionStorage.removeItem(TOKEN);
+            sessionStorage.removeItem(USER);
+            localStorage.removeItem(TOKEN);
+            localStorage.removeItem(USER);
 
             // Redirect to appropriate login portal
-            const role = user?.role;
-            if (role === 'admin') window.location.href = '/admin/login';
-            else if (['dean', 'principal'].includes(role)) window.location.href = '/login/principal';
-            else if (role === 'faculty' || role === 'hod') window.location.href = '/login/faculty';
-            else if (role === 'domain_head') window.location.href = '/login/incharge';
-            else window.location.href = '/login/student';
+            const currentPath = window.location.pathname;
+            if (currentPath.startsWith('/admin')) {
+                window.location.href = '/admin/login';
+            } else {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(err);
     }

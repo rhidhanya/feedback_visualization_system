@@ -1090,6 +1090,8 @@ exports.getHodAnalytics = async (req, res) => {
                     _id: "$subjectId",
                     name: { $first: "$subject.name" },
                     code: { $first: "$subject.subjectCode" },
+                    facultyName: { $first: "$subject.facultyName" },
+                    semester: { $first: "$subject.semester" },
                     avgRating: { $avg: "$overallRating" }
                 }
             },
@@ -1114,6 +1116,8 @@ exports.getHodAnalytics = async (req, res) => {
                     _id: "$subjectId",
                     name: { $first: "$subject.name" },
                     code: { $first: "$subject.subjectCode" },
+                    facultyName: { $first: "$subject.facultyName" },
+                    semester: { $first: "$subject.semester" },
                     avgRating: { $avg: "$overallRating" }
                 }
             },
