@@ -13,6 +13,38 @@ const MonitorDomains = () => {
     const [detail, setDetail] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: 'var(--clr-text)', font: { family: 'Inter', size: 12, weight: 600 } } },
+            tooltip: {
+                backgroundColor: '#FFFFFF',
+                titleColor: '#000000',
+                bodyColor: '#334155',
+                borderColor: 'var(--clr-border)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 4,
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 5,
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { color: 'var(--clr-chart-grid)' }
+            },
+            x: {
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { display: false }
+            }
+        },
+        layout: {
+            padding: { left: 10, right: 10, top: 10, bottom: 10 }
+        }
+    };
+
     const fetchAll = useCallback(async () => {
         setLoading(true);
         try {
@@ -49,8 +81,8 @@ const MonitorDomains = () => {
         <MonitorLayout title="Domain Analytics">
             <div className="chart-card" style={{ marginBottom: '1.5rem' }}>
                 <div className="chart-card-header"><h3>All Domains — Average Rating</h3></div>
-                <div style={{ height: 300 }}>
-                    {chart ? <Bar data={chart} options={{ responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5 } } }} /> : <div className="empty-state"><FiInbox size={28} /><span>No data</span></div>}
+                <div style={{ height: 320 }}>
+                    {chart ? <Bar data={chart} options={chartOptions} /> : <div className="empty-state"><FiInbox size={28} /><span>No data</span></div>}
                 </div>
             </div>
 

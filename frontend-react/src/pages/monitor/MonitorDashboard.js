@@ -14,6 +14,38 @@ const MonitorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const socketRef = useRef(null);
 
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: 'var(--clr-text)', font: { family: 'Inter', size: 12, weight: 600 } } },
+            tooltip: {
+                backgroundColor: '#FFFFFF',
+                titleColor: '#000000',
+                bodyColor: '#334155',
+                borderColor: 'var(--clr-border)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 4,
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 5,
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { color: 'var(--clr-chart-grid)' }
+            },
+            x: {
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { display: false }
+            }
+        },
+        layout: {
+            padding: { left: 10, right: 10, top: 10, bottom: 10 }
+        }
+    };
+
     const fetchAll = useCallback(async () => {
         setLoading(true);
         try {
@@ -84,14 +116,14 @@ const MonitorDashboard = () => {
             <div className="charts-grid" style={{ marginBottom: '1.5rem' }}>
                 <div className="chart-card">
                     <div className="chart-card-header"><h3>Domain Rating Comparison</h3></div>
-                    <div style={{ height: 300 }}>
-                        {comparisonChart ? <Bar data={comparisonChart} options={{ responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5 } } }} /> : <Empty />}
+                    <div style={{ height: 320 }}>
+                        {comparisonChart ? <Bar data={comparisonChart} options={chartOptions} /> : <Empty />}
                     </div>
                 </div>
                 <div className="chart-card">
                     <div className="chart-card-header"><h3>Negative Feedback by Domain</h3></div>
-                    <div style={{ height: 300 }}>
-                        {negativeChart ? <Bar data={negativeChart} options={{ responsive: true, maintainAspectRatio: false }} /> : <Empty />}
+                    <div style={{ height: 320 }}>
+                        {negativeChart ? <Bar data={negativeChart} options={{ ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: undefined } } }} /> : <Empty />}
                     </div>
                 </div>
             </div>
@@ -120,30 +152,32 @@ const MonitorDashboard = () => {
             </div>
 
             {/* Issue Summary */}
-            <div className="chart-card" style={{ padding: '1.25rem' }}>
-                <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Issue Status Summary</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead>
-                        <tr style={{ background: '#f8fafc' }}>
-                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>Domain</th>
-                            <th style={{ padding: '8px', textAlign: 'center' }}>Pending</th>
-                            <th style={{ padding: '8px', textAlign: 'center' }}>In Progress</th>
-                            <th style={{ padding: '8px', textAlign: 'center' }}>Rectified</th>
-                            <th style={{ padding: '8px', textAlign: 'center' }}>Closed</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Object.entries(issueSummary).map(([dom, counts]) => (
-                            <tr key={dom} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                <td style={{ padding: '8px 12px', fontWeight: 600 }}>{dom?.charAt(0).toUpperCase() + dom?.slice(1)}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#685D54', fontWeight: 600 }}>{counts.Pending || 0}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#A39382', fontWeight: 600 }}>{counts['In Progress'] || 0}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#A39382', fontWeight: 600 }}>{counts.Rectified || 0}</td>
-                                <td style={{ padding: '8px', textAlign: 'center', color: '#94a3b8', fontWeight: 600 }}>{counts.Closed || 0}</td>
+            <div className="chart-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1rem', marginBottom: '1.25rem' }}>Issue Status Summary</h3>
+                <div style={{ overflowX: 'auto', width: '100%' }}>
+                    <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--clr-border)' }}>
+                                <th style={{ padding: '12px', textAlign: 'left' }}>Domain</th>
+                                <th style={{ padding: '12px', textAlign: 'center' }}>Pending</th>
+                                <th style={{ padding: '12px', textAlign: 'center' }}>In Progress</th>
+                                <th style={{ padding: '12px', textAlign: 'center' }}>Rectified</th>
+                                <th style={{ padding: '12px', textAlign: 'center' }}>Closed</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {Object.entries(issueSummary).map(([dom, counts]) => (
+                                <tr key={dom} style={{ borderBottom: '1px solid var(--clr-border)' }}>
+                                    <td style={{ padding: '12px', fontWeight: 600 }}>{dom?.charAt(0).toUpperCase() + dom?.slice(1)}</td>
+                                    <td style={{ padding: '12px', textAlign: 'center', color: '#334155', fontWeight: 600 }}>{counts.Pending || 0}</td>
+                                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--clr-primary)', fontWeight: 600 }}>{counts['In Progress'] || 0}</td>
+                                    <td style={{ padding: '12px', textAlign: 'center', color: 'var(--clr-primary)', fontWeight: 600 }}>{counts.Rectified || 0}</td>
+                                    <td style={{ padding: '12px', textAlign: 'center', color: '#94a3b8', fontWeight: 600 }}>{counts.Closed || 0}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
                 {Object.keys(issueSummary).length === 0 && <Empty />}
             </div>
         </MonitorLayout>

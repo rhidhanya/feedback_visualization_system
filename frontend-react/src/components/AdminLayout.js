@@ -36,16 +36,13 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
             <aside className="sidebar" id="admin-sidebar">
                 <div className="sidebar-logo">
                     <div className="brand">
-                        <div className="brand-icon">
-                            <CampusLensLogo iconSize={36} hideText />
-                        </div>
-                        <span className="brand-text">CampusLens</span>
+                        <CampusLensLogo iconSize={36} dark={true} />
                     </div>
                 </div>
 
                 <nav className="sidebar-nav" style={{ padding: '0 1rem' }}>
                     <div className="nav-section" style={{ marginBottom: '1.5rem' }}>
-                        <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Main</div>
+                        <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-sidebar-text)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Main</div>
                         {adminNavMain.map(item => (
                             <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
                                 <span className="nav-icon">{item.icon}</span>{item.label}
@@ -54,7 +51,7 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                     </div>
                     {showManagement && (
                         <div className="nav-section">
-                            <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Management</div>
+                            <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-sidebar-text)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Management</div>
                             {adminNavManage.map(item => (
                                 <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
                                     <span className="nav-icon">{item.icon}</span>{item.label}
@@ -68,7 +65,7 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                     <button
                         id="logout-btn"
                         className="nav-item"
-                        style={{ color: '#e57373', width: '100%', background: 'rgba(211, 47, 47, 0.05)' }}
+                        style={{ color: 'var(--clr-danger)', width: '100%', background: 'var(--clr-danger-lt)' }}
                         onClick={handleLogout}
                     >
                         <span className="nav-icon"><FiLogOut size={16} /></span> Logout
@@ -78,12 +75,12 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
             )}
 
             {/* ── Main ── */}
-            <div className="main-content" style={noSidebar ? { marginLeft: 0, width: '100%' } : {}}>
+            <div className="main-content" style={noSidebar ? { marginLeft: 0 } : {}}>
                 <header className="topbar">
                     <span className="topbar-title">{title}</span>
                     <div className="topbar-right">
-                        <div className="user-chip" style={{ background: 'rgba(229, 222, 210, 0.1)', border: '1px solid var(--clr-border)', color: 'var(--clr-text)' }}>
-                            <div className="user-avatar" style={{ background: 'var(--clr-surface)', color: 'var(--clr-primary)' }}>{initials}</div>
+                        <div className="user-chip" style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', color: 'var(--clr-text)' }}>
+                            <div className="user-avatar" style={{ background: 'var(--clr-primary)', color: '#FFFFFF' }}>{initials}</div>
                             <span style={{ fontWeight: 600 }}>{user?.name}</span>
                             <span className="badge badge-primary">
                                 {user?.role === 'dean' ? 'Dean' : user?.role === 'principal' ? 'Principal' : 'Admin'}

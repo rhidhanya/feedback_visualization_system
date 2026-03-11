@@ -36,23 +36,25 @@ const MonitorIssues = () => {
             </div>
 
             {/* Summary */}
-            <div className="chart-card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                    <thead><tr style={{ background: '#f8fafc' }}>
-                        <th style={{ padding: 8, textAlign: 'left' }}>Domain</th>
-                        <th style={{ padding: 8 }}>Pending</th><th style={{ padding: 8 }}>In Progress</th>
-                        <th style={{ padding: 8 }}>Rectified</th><th style={{ padding: 8 }}>Closed</th>
-                    </tr></thead>
-                    <tbody>{Object.entries(issueSummary).map(([d, c]) => (
-                        <tr key={d} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: 8, fontWeight: 600 }}>{d?.charAt(0).toUpperCase() + d?.slice(1)}</td>
-                            <td style={{ padding: 8, textAlign: 'center', color: 'var(--clr-primary)' }}>{c.Pending || 0}</td>
-                            <td style={{ padding: 8, textAlign: 'center', color: 'var(--clr-accent)' }}>{c['In Progress'] || 0}</td>
-                            <td style={{ padding: 8, textAlign: 'center', color: 'var(--clr-success)' }}>{c.Rectified || 0}</td>
-                            <td style={{ padding: 8, textAlign: 'center', color: 'var(--clr-text-3)' }}>{c.Closed || 0}</td>
-                        </tr>
-                    ))}</tbody>
-                </table>
+            <div className="chart-card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+                <div style={{ overflowX: 'auto', width: '100%' }}>
+                    <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                        <thead><tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--clr-border)' }}>
+                            <th style={{ padding: 12, textAlign: 'left' }}>Domain</th>
+                            <th style={{ padding: 12 }}>Pending</th><th style={{ padding: 12 }}>In Progress</th>
+                            <th style={{ padding: 12 }}>Rectified</th><th style={{ padding: 12 }}>Closed</th>
+                        </tr></thead>
+                        <tbody>{Object.entries(issueSummary).map(([d, c]) => (
+                            <tr key={d} style={{ borderBottom: '1px solid var(--clr-border)' }}>
+                                <td style={{ padding: 12, fontWeight: 600 }}>{d?.charAt(0).toUpperCase() + d?.slice(1)}</td>
+                                <td style={{ padding: 12, textAlign: 'center', color: 'var(--clr-primary)', fontWeight: 600 }}>{c.Pending || 0}</td>
+                                <td style={{ padding: 12, textAlign: 'center', color: 'var(--clr-accent)', fontWeight: 600 }}>{c['In Progress'] || 0}</td>
+                                <td style={{ padding: 12, textAlign: 'center', color: 'var(--clr-success)', fontWeight: 600 }}>{c.Rectified || 0}</td>
+                                <td style={{ padding: 12, textAlign: 'center', color: 'var(--clr-text-3)', fontWeight: 600 }}>{c.Closed || 0}</td>
+                            </tr>
+                        ))}</tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Issue list */}

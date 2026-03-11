@@ -101,7 +101,7 @@ const PrincipalDashboard = () => {
         datasets: [{
             label: 'Avg Rating',
             data: data.byDepartment.map(d => d.avgRating),
-            backgroundColor: data.byDepartment.map((_, i) => ['#A39382', '#685D54', '#E5DED2', '#FBF7F4'][i % 4]),
+            backgroundColor: data.byDepartment.map((_, i) => ['#1E4DB7', '#3B82F6', '#60A5FA', '#94A3B8'][i % 4]),
             borderRadius: 8,
         }]
     } : { labels: [], datasets: [] };
@@ -110,7 +110,7 @@ const PrincipalDashboard = () => {
         labels: ['Responded', 'Not Responded'],
         datasets: [{
             data: [data?.summary?.totalFeedback || 0, (data?.summary?.totalStudents || 0) - (data?.summary?.totalFeedback || 0)],
-            backgroundColor: ['#A39382', '#685D54'], // Taupe, Mocha
+            backgroundColor: ['#1E4DB7', '#CBD5E1'], 
             hoverOffset: 4
         }]
     };
@@ -119,12 +119,12 @@ const PrincipalDashboard = () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { labels: { color: '#E5DED2', font: { family: 'Inter', size: 12, weight: 600 } } },
+            legend: { labels: { color: 'var(--clr-text)', font: { family: 'Inter', size: 12, weight: 600 } } },
             tooltip: {
-                backgroundColor: '#232323',
-                titleColor: '#E5DED2',
-                bodyColor: '#E5DED2',
-                borderColor: '#685D54',
+                backgroundColor: '#FFFFFF',
+                titleColor: '#000000',
+                bodyColor: '#334155',
+                borderColor: 'var(--clr-border)',
                 borderWidth: 1,
                 padding: 12,
                 cornerRadius: 4,
@@ -134,12 +134,20 @@ const PrincipalDashboard = () => {
             y: {
                 min: 0,
                 max: 5,
-                ticks: { color: '#E5DED2', font: { family: 'Inter', size: 11, weight: 600 } },
-                grid: { color: 'rgba(104, 93, 84, 0.25)' }
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { color: 'var(--clr-chart-grid)' }
             },
             x: {
-                ticks: { color: '#E5DED2', font: { family: 'Inter', size: 11, weight: 600 } },
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
                 grid: { display: false }
+            }
+        },
+        layout: {
+            padding: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10
             }
         }
     };
@@ -151,24 +159,24 @@ const PrincipalDashboard = () => {
         datasets: [{
             label: 'Avg Rating Trend',
             data: data?.trend?.map(t => t.avgRating || 0) || [],
-            borderColor: '#A39382', // Taupe
-            backgroundColor: 'rgba(163, 147, 130, 0.1)',
+            borderColor: '#1E4DB7', 
+            backgroundColor: 'rgba(30, 77, 183, 0.1)',
             fill: true,
             tension: 0.4,
             pointRadius: 5,
-            pointBackgroundColor: '#232323',
+            pointBackgroundColor: '#1E4DB7',
         }]
     } : {
         labels: domainData?.semesterTrend?.map(t => `Sem ${t.semester}`) || [],
         datasets: [{
             label: 'Avg Rating',
             data: domainData?.semesterTrend?.map(t => t.avgRating) || [],
-            borderColor: '#685D54', // Mocha
-            backgroundColor: 'rgba(104, 93, 84, 0.1)',
+            borderColor: '#1E4DB7', 
+            backgroundColor: 'rgba(30, 77, 183, 0.1)',
             fill: true,
             tension: 0.4,
             pointRadius: 5,
-            pointBackgroundColor: '#232323',
+            pointBackgroundColor: '#1E4DB7',
         }]
     };
 
@@ -212,7 +220,7 @@ const PrincipalDashboard = () => {
                         )}
                     </button>
 
-                    <div style={{ padding: '0.65rem 1.25rem', background: 'var(--clr-primary)', color: 'var(--clr-text)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--clr-border)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    <div style={{ padding: '0.65rem 1.25rem', background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--clr-border)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         <FiShield size={14} /> EXECUTIVE ACCESS
                     </div>
                     
@@ -228,7 +236,7 @@ const PrincipalDashboard = () => {
             </div>
 
             {/* Domain Tabs */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                 {[
                     { id: 'academics', label: 'Academics', icon: <FiBook /> },
                     { id: 'transport', label: 'Transport', icon: <FiTruck /> },
@@ -253,30 +261,30 @@ const PrincipalDashboard = () => {
             ) : activeDomain === 'academics' ? (
                 <>
                     {/* Academics Stats */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                         <StatCard icon={<FiMessageSquare />} label="Total Responses" value={summary?.totalFeedback || 0} color="var(--clr-primary)" bg="var(--clr-primary-lt)" />
                         <StatCard icon={<FiStar />} label="Overall Rating" value={`${summary?.avgRating || 0} / 5`} color="var(--clr-accent)" bg="var(--clr-accent-lt)" />
                         <StatCard icon={<FiTrendingUp />} label="Positive (4+★)" value={`${Math.round((summary?.positiveCount / summary?.totalFeedback) * 100) || 0}%`} color="var(--clr-success)" bg="var(--clr-success-lt)" />
                         <StatCard icon={<FiAlertTriangle />} label="Critical Concerns" value={summary?.lowRatingCount || 0} color="#dc2626" bg="#fef2f2" />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                         <div className="chart-card">
                             <h3>Department Performance</h3>
-                            <div style={{ height: '300px' }}>
+                            <div style={{ height: '280px' }}>
                                 <Bar data={deptChartData} options={chartOptions} />
                             </div>
                         </div>
                         <div className="chart-card">
                             <h3>Top 5 Performing Faculties</h3>
-                            <div style={{ height: '300px' }}>
+                            <div style={{ height: '280px' }}>
                                 <Bar 
                                     data={{
                                         labels: data?.faculty?.slice(0, 5).map(f => f.facultyName) || [],
                                         datasets: [{
                                             label: 'Avg Rating',
                                             data: data?.faculty?.slice(0, 5).map(f => f.avgRating),
-                                            backgroundColor: '#E5DED2', // Oat - better contrast
+                                            backgroundColor: '#1E4DB7', 
                                             borderRadius: 6
                                         }]
                                     }}
@@ -286,17 +294,17 @@ const PrincipalDashboard = () => {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                         <div className="card-premium">
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>Semester Wise Trend</h3>
-                            <div style={{ height: '300px' }}>
+                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text)' }}>Semester Wise Trend</h3>
+                            <div style={{ height: '280px' }}>
                                 <Line data={trendData} options={chartOptions} />
                             </div>
                         </div>
                         <div className="card-premium">
-                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>Participation</h3>
-                            <div style={{ height: '300px' }}>
-                                <Doughnut data={participationData} options={{ maintainAspectRatio: false }} />
+                            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--clr-text)' }}>Participation</h3>
+                            <div style={{ height: '280px' }}>
+                                <Doughnut data={participationData} options={{ maintainAspectRatio: false, layout: { padding: 20 } }} />
                             </div>
                         </div>
                     </div>
@@ -304,15 +312,15 @@ const PrincipalDashboard = () => {
             ) : (
                 <>
                     {/* Domain Specific Stats */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div className="card-premium" style={{ gridColumn: '1 / -1', borderLeft: '6px solid var(--clr-primary)', padding: '2rem', background: 'var(--clr-surface)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                        <div className="card-premium" style={{ gridColumn: '1 / -1', borderLeft: '6px solid var(--clr-primary)', padding: '2rem', background: 'var(--clr-bg)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                                <div className="icon-box" style={{ width: 72, height: 72, background: 'rgba(104, 93, 84, 0.1)', color: 'var(--clr-text-on-oat)', border: '1px solid var(--clr-border)' }}>
+                                <div className="icon-box" style={{ width: 72, height: 72, background: 'var(--clr-surface-2)', color: 'var(--clr-primary)', border: '1px solid var(--clr-border)' }}>
                                     <FiShield size={36} />
                                 </div>
                                 <div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clr-mocha)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Domain Leadership</p>
-                                    <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)', letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
+                                    <p style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Domain Leadership</p>
+                                    <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.01em', marginBottom: '0.5rem' }}>
                                         {DOMAIN_HEADS[activeDomain]?.name}
                                     </h3>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -332,17 +340,17 @@ const PrincipalDashboard = () => {
                         <StatCard icon={<FiActivity />} label="Success Rate" value={`${Math.round(((domainData?.totalFeedback - domainData?.negativeFeedback) / domainData?.totalFeedback) * 100) || 0}%`} color="var(--clr-success)" bg="var(--clr-success-lt)" />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                         <div className="chart-card">
                             <h3>Question-wise Average</h3>
-                            <div style={{ height: '350px' }}>
+                            <div style={{ height: '260px' }}>
                                 <Bar
                                     data={{
                                         labels: domainData?.questionStats?.map(q => q.question?.slice(0, 30) + '...') || [],
                                         datasets: [{ 
                                             label: 'Avg Rating', 
                                             data: domainData?.questionStats?.map(q => q.avgRating) || [], 
-                                            backgroundColor: '#E5DED2', // Oat
+                                            backgroundColor: 'var(--clr-border)', // Oat
                                             borderRadius: 4 
                                         }]
                                     }}
@@ -352,7 +360,7 @@ const PrincipalDashboard = () => {
                         </div>
                         <div className="chart-card">
                             <h3>Rating Trend</h3>
-                            <div style={{ height: '350px' }}>
+                            <div style={{ height: '260px' }}>
                                 <Line data={trendData} options={chartOptions} />
                             </div>
                         </div>
@@ -371,11 +379,11 @@ const PrincipalDashboard = () => {
 };
 
 const StatCard = ({ icon, label, value, color }) => (
-    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
-        <div className="icon-box" style={{ background: 'rgba(104, 93, 84, 0.1)', color: 'var(--clr-text-on-oat)', border: '1px solid var(--clr-border)' }}>{icon}</div>
+    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+        <div className="icon-box" style={{ background: `${color}15`, color: color, border: `1px solid ${color}30` }}>{icon}</div>
         <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>{label}</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{value}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--clr-text)' }}>{value}</div>
         </div>
     </div>
 );

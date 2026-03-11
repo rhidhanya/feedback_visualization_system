@@ -195,7 +195,7 @@ const FacultyManagement = () => {
                 </div>
             </div>
 
-            <div className="admin-kpi-grid">
+            <div className="admin-kpi-grid" style={{ minHeight: '120px' }}>
                 <div className="admin-kpi-card">
                     <div className="icon-box"><FiUsers size={22} /></div>
                     <div className="info">
@@ -227,16 +227,16 @@ const FacultyManagement = () => {
             </div>
 
             {toast && (
-                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100, background: toast.type === 'success' ? 'var(--clr-success)' : 'var(--clr-danger)', color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '10px', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
+                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100, background: toast.type === 'success' ? 'var(--clr-success)' : 'var(--clr-danger)', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow-lg)' }}>
                     {toast.msg}
                 </div>
             )}
 
-            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.department}
                         onChange={e => { setFilters(p => ({ ...p, department: e.target.value })); setCurrentPage(1); }}
                     >
@@ -247,7 +247,7 @@ const FacultyManagement = () => {
                 <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Status</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.isActive}
                         onChange={e => { setFilters(p => ({ ...p, isActive: e.target.value })); setCurrentPage(1); }}
                     >
@@ -265,7 +265,7 @@ const FacultyManagement = () => {
                             placeholder="Search by Name or Email..." 
                             value={search}
                             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-charcoal)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
                         />
                     </div>
                 </div>
@@ -276,7 +276,7 @@ const FacultyManagement = () => {
             ) : faculty.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--clr-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--clr-border)' }}>
                     <FiUser size={48} style={{ color: 'var(--clr-text-3)', marginBottom: '1.25rem' }} />
-                    <h3 style={{ color: 'var(--clr-text-on-oat)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '0.05em' }}>No faculty found matching filters</h3>
+                    <h3 style={{ color: 'var(--clr-text)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '0.05em' }}>No faculty found matching filters</h3>
                 </div>
             ) : (
                 <>
@@ -302,12 +302,12 @@ const FacultyManagement = () => {
                                         </td>
                                         <td>
                                             <select 
-                                                style={{ padding: '0.35rem 0.6rem', height: 'auto', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', cursor: 'default' }}
+                                                style={{ padding: '0.35rem 0.6rem', height: 'auto', background: 'var(--clr-surface-2)', color: 'var(--clr-text)', border: '1px solid var(--clr-border)', cursor: 'default', borderRadius: '6px' }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <option style={{ background: 'var(--clr-sidebar)' }}>{f.assignedSubjects?.length || 0} Subjects Assigned</option>
+                                                <option>{f.assignedSubjects?.length || 0} Subjects Assigned</option>
                                                 {(f.assignedSubjects || []).map(s => (
-                                                    <option key={s._id} style={{ background: 'var(--clr-sidebar)' }}>{s.subjectCode} — {s.name}</option>
+                                                    <option key={s._id}>{s.subjectCode} — {s.name}</option>
                                                 ))}
                                             </select>
                                         </td>
@@ -330,8 +330,8 @@ const FacultyManagement = () => {
                                                 >
                                                     {f.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
-                                                <button onClick={() => openEdit(f)} style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
-                                                <button onClick={() => setDeleteConfirm(f)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
+                                                <button onClick={() => openEdit(f)} style={{ color: 'var(--clr-text-3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                                <button onClick={() => setDeleteConfirm(f)} style={{ color: 'var(--clr-danger)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>

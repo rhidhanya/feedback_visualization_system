@@ -251,14 +251,14 @@ const SubjectManagement = () => {
                             placeholder="Search by Name, Code or Faculty..." 
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
                         />
                     </div>
                 </div>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filterDept}
                         onChange={e => setFilterDept(e.target.value)}
                     >
@@ -269,7 +269,7 @@ const SubjectManagement = () => {
                 <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Semester</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filterSem}
                         onChange={e => setFilterSem(e.target.value)}
                     >

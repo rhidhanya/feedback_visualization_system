@@ -41,7 +41,7 @@ const LoginPage = () => {
                     <div className="login-logo-wrap" style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'center' }}>
                         <CampusLensIcon size={56} color="var(--clr-primary)" />
                     </div>
-                    <h1 className="login-app-name" style={{ color: 'var(--clr-text-on-oat)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>CampusLens</h1>
+                    <h1 className="login-app-name" style={{ color: 'var(--clr-text)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>CampusLens</h1>
                     <div className="login-role-badge" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', letterSpacing: '0.15em' }}>
                         ANALYTICS PORTAL
                     </div>
@@ -86,7 +86,7 @@ const LoginPage = () => {
                             placeholder="Enter your email"
                             required
                             autoComplete="email"
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '4px', border: '1px solid var(--clr-border)', background: 'var(--clr-surface-2)', color: 'var(--clr-text-on-oat)', fontSize: '0.9rem' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '4px', border: '1px solid var(--clr-border)', background: 'var(--clr-surface-2)', color: 'var(--clr-text)', fontSize: '0.9rem' }}
                         />
                     </div>
 
@@ -100,7 +100,7 @@ const LoginPage = () => {
                             placeholder="Enter your password"
                             required
                             autoComplete="current-password"
-                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '4px', border: '1px solid var(--clr-border)', background: 'var(--clr-surface-2)', color: 'var(--clr-text-on-oat)', fontSize: '0.9rem' }}
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '4px', border: '1px solid var(--clr-border)', background: 'var(--clr-surface-2)', color: 'var(--clr-text)', fontSize: '0.9rem' }}
                         />
                     </div>
 

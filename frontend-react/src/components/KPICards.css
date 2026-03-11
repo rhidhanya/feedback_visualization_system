@@ -1,15 +1,15 @@
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .kpi-card {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--clr-border);
   backdrop-filter: blur(10px);
-  padding: 1.5rem;
+  padding: 1rem 1.25rem;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -46,8 +46,8 @@
 }
 
 .kpi-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1c1b1f;
-  margin: 0.5rem 0 0 0;
+  margin: 0.25rem 0 0 0;
 }

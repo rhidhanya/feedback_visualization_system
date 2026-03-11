@@ -170,7 +170,7 @@ const HodManagement = () => {
                 </div>
             </div>
 
-            <div className="admin-kpi-grid">
+            <div className="admin-kpi-grid" style={{ minHeight: '120px' }}>
                 <div className="admin-kpi-card">
                     <div className="icon-box"><FiUsers size={22} /></div>
                     <div className="info">
@@ -207,11 +207,11 @@ const HodManagement = () => {
                 </div>
             )}
 
-            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.department}
                         onChange={e => { setFilters(p => ({ ...p, department: e.target.value })); setCurrentPage(1); }}
                     >
@@ -222,7 +222,7 @@ const HodManagement = () => {
                 <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Status</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.isActive}
                         onChange={e => { setFilters(p => ({ ...p, isActive: e.target.value })); setCurrentPage(1); }}
                     >
@@ -235,12 +235,12 @@ const HodManagement = () => {
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Authorization</label>
                     <div style={{ position: 'relative' }}>
                         <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
-                        <input 
-                            type="text" 
-                            placeholder="Search by Name, Email or HOD ID..." 
+                        <input
+                            type="text"
+                            placeholder="Search by Name, Email or HOD ID..."
                             value={search}
                             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-charcoal)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
                         />
                     </div>
                 </div>
@@ -251,7 +251,7 @@ const HodManagement = () => {
             ) : hods.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--clr-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--clr-border)' }}>
                     <FiUser size={48} style={{ color: 'var(--clr-text-3)', marginBottom: '1.25rem' }} />
-                    <h3 style={{ color: 'var(--clr-text-on-oat)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '0.05em' }}>No results match the current filters</h3>
+                    <h3 style={{ color: 'var(--clr-text)', textTransform: 'uppercase', fontSize: '1rem', letterSpacing: '0.05em' }}>No results match the current filters</h3>
                 </div>
             ) : (
                 <>
@@ -272,7 +272,7 @@ const HodManagement = () => {
                                     <tr key={h._id}>
                                         <td style={{ fontWeight: 700 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', color: 'var(--clr-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
                                                     {h.name?.charAt(0)?.toUpperCase()}
                                                 </div>
                                                 {h.name}
@@ -290,7 +290,7 @@ const HodManagement = () => {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                                <button 
+                                                <button
                                                     onClick={async () => {
                                                         try {
                                                             await api.patch(`/users/${h._id}/toggle-status`);
@@ -302,8 +302,8 @@ const HodManagement = () => {
                                                 >
                                                     {h.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
-                                                <button onClick={() => openEdit(h)} style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
-                                                <button onClick={() => setDeleteConfirm(h)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
+                                                <button onClick={() => openEdit(h)} style={{ color: 'var(--clr-text-3)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                                <button onClick={() => setDeleteConfirm(h)} style={{ color: 'var(--clr-danger)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>

@@ -20,6 +20,38 @@ const DomainHeadDashboard = () => {
     const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'queries'
     const socketRef = useRef(null);
 
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: 'var(--clr-text)', font: { family: 'Inter', size: 12, weight: 600 } } },
+            tooltip: {
+                backgroundColor: '#FFFFFF',
+                titleColor: '#000000',
+                bodyColor: '#334155',
+                borderColor: 'var(--clr-border)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 4,
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 5,
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { color: 'var(--clr-chart-grid)' }
+            },
+            x: {
+                ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
+                grid: { display: false }
+            }
+        },
+        layout: {
+            padding: { left: 10, right: 10, top: 10, bottom: 10 }
+        }
+    };
+
     const fetchAll = useCallback(async () => {
         if (!domain) return;
         setLoading(true);
@@ -116,14 +148,14 @@ const DomainHeadDashboard = () => {
             <div className="charts-grid" style={{ marginBottom: '1.5rem' }}>
                 <div className="chart-card">
                     <div className="chart-card-header"><h3>Question-wise Ratings</h3></div>
-                    <div style={{ height: 280 }}>
-                        {questionChart ? <Bar data={questionChart} options={{ responsive: true, maintainAspectRatio: false, indexAxis: 'y', scales: { x: { min: 0, max: 5 } } }} /> : <Empty />}
+                    <div style={{ height: 300 }}>
+                        {questionChart ? <Bar data={questionChart} options={{ ...chartOptions, indexAxis: 'y', scales: { ...chartOptions.scales, x: { ...chartOptions.scales.y, grid: { color: 'var(--clr-chart-grid)' } }, y: { ...chartOptions.scales.x, grid: { display: false } } } }} /> : <Empty />}
                     </div>
                 </div>
                 <div className="chart-card">
                     <div className="chart-card-header"><h3>Semester Trend</h3></div>
-                    <div style={{ height: 280 }}>
-                        {trendChart ? <Line data={trendChart} options={{ responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 5 } } }} /> : <Empty />}
+                    <div style={{ height: 300 }}>
+                        {trendChart ? <Line data={trendChart} options={chartOptions} /> : <Empty />}
                     </div>
                 </div>
             </div>

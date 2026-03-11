@@ -278,7 +278,7 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#A39382', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--clr-primary)', marginBottom: '8px' }}>
                         {selectedUser.totalUploads}
                       </div>
                       <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
@@ -293,7 +293,7 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#685D54', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', marginBottom: '8px' }}>
                         {selectedUser.totalDownloads}
                       </div>
                       <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
@@ -308,7 +308,7 @@ const Admin = () => {
                       textAlign: 'center',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#A39382', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--clr-primary)', marginBottom: '8px' }}>
                         {selectedUser.loginSessions?.length || 0}
                       </div>
                       <div style={{ fontSize: '1rem', color: 'var(--clr-mocha)', fontWeight: '500' }}>
@@ -587,7 +587,7 @@ const Admin = () => {
                                 background: session.type === 'signup' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-light)',
                                 borderRadius: '8px',
                                 marginBottom: '8px',
-                                border: '1px solid ' + (session.type === 'signup' ? '#A3938233' : 'var(--clr-border)'),
+                                border: '1px solid ' + (session.type === 'signup' ? 'var(--clr-primary)33' : 'var(--clr-border)'),
                                 transition: 'all 0.2s ease'
                               }}
                               onMouseEnter={(e) => {

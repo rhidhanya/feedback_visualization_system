@@ -100,8 +100,9 @@ const NotificationCenter = () => {
 
             {/* Send Modal */}
             {sendModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ background: '#fff', borderRadius: 12, padding: '2rem', maxWidth: 500, width: '90%' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}
+                    onClick={() => setSendModal(false)}>
+                    <div className="card-premium" style={{ borderRadius: 12, padding: '2rem', maxWidth: 500, width: '90%', background: 'var(--clr-surface)' }} onClick={e => e.stopPropagation()}>
                         <h3 style={{ marginBottom: '1rem' }}>Send Notification</h3>
                         <form onSubmit={handleSend}>
                             <div className="input-group"><label>Recipient (Domain Head)</label>
@@ -122,7 +123,7 @@ const NotificationCenter = () => {
                             </div>
                             <div className="input-group"><label>Message</label>
                                 <textarea value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} required rows={4} placeholder="Describe the issue…"
-                                    style={{ width: '100%', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.75rem', fontSize: '0.85rem' }} />
+                                    style={{ width: '100%', border: '1px solid var(--clr-border)', background: 'var(--clr-surface-2)', color: 'var(--clr-charcoal)', borderRadius: 8, padding: '0.75rem', fontSize: '0.85rem' }} />
                             </div>
                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                                 <button type="button" onClick={() => setSendModal(false)} className="btn" style={{ background: '#f1f5f9' }}>Cancel</button>

@@ -18,27 +18,28 @@ ChartJS.register(
 );
 
 // ── Chart defaults ─────────────────────────────────────────────────────────
-const OAT = '#E5DED2';
-const CHARCOAL = '#232323';
-const MOCHA = '#685D54';
-const TAUPE = '#A39382';
-const MILK = '#FBF7F4';
+const OAT = '#F8FAFC';
+const CHARCOAL = '#0F172A';
+const MOCHA = '#64748B';
+const TAUPE = '#1E4DB7'; // Institutional Blue
+const MILK = '#FFFFFF';
 
-const TEXT = OAT; // Oat on Charcoal
-const GRID = 'rgba(104, 93, 84, 0.25)'; // Mocha line
+const TEXT = '#0F172A'; // Black text
+const GRID = 'var(--clr-chart-grid)'; // Subtle lines
 const TIP = {
-    backgroundColor: CHARCOAL,
-    titleColor: OAT,
-    bodyColor: OAT,
-    borderColor: MOCHA,
+    backgroundColor: '#FFFFFF',
+    titleColor: '#0F172A',
+    bodyColor: '#475569',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
     padding: 12,
-    cornerRadius: 4,
+    cornerRadius: 8,
 };
-const TICK = { color: OAT, font: { family: 'Inter', size: 11, weight: 600 } };
+const TICK = { color: '#64748B', font: { family: 'Inter', size: 11, weight: 600 } };
 const baseChartOpts = (extraOpts = {}) => ({
     responsive: true,
     maintainAspectRatio: false,
+    layout: { padding: 10 },
     plugins: {
         legend: { labels: { color: TEXT, font: { family: 'Inter', size: 12, weight: 600 }, padding: 16 } },
         tooltip: { ...TIP },
@@ -51,8 +52,8 @@ const baseChartOpts = (extraOpts = {}) => ({
     ...extraOpts,
 });
 
-// Palette – clean Charcoal & Oat compatible variations
-const CHART_COLORS = [TAUPE, MOCHA, OAT, MILK];
+// Palette – clean Blue & Slate compatible variations
+const CHART_COLORS = ['#1E4DB7', '#3B82F6', '#60A5FA', '#94A3B8'];
 
 // Dept filter options
 // eslint-disable-next-line no-unused-vars
@@ -170,7 +171,7 @@ const AdminDashboard = () => {
     }, [fetchAll]);
 
     // ── Faculty bar chart ────────────────────────────────────────────
-    const facultyChart = data ? {
+    const facultyChart = React.useMemo(() => data ? {
         labels: data.faculty.slice(0, 15).map(f => f.facultyName?.split(' ').slice(0, 2).join(' ') || '—'),
         datasets: [{
             label: 'Avg Rating',
@@ -179,10 +180,10 @@ const AdminDashboard = () => {
             borderRadius: 8,
             barThickness: 18
         }],
-    } : null;
+    } : null, [data]);
 
     // ── Rating distribution pie ──────────────────────────────────────
-    const pieDist = data?.dist ? {
+    const pieDist = React.useMemo(() => data?.dist ? {
         labels: Object.keys(data.dist).map(d => `${d} ★`),
         datasets: [{
             data: Object.values(data.dist),
@@ -190,10 +191,10 @@ const AdminDashboard = () => {
             borderColor: '#fff',
             borderWidth: 2,
         }],
-    } : null;
+    } : null, [data]);
 
     // ── Semester trend line ──────────────────────────────────────────
-    const trendChart = data?.trend?.length ? {
+    const trendChart = React.useMemo(() => data?.trend?.length ? {
         labels: data.trend.map(t => t.label || `Sem ${t.semester}`),
         datasets: [{
             label: 'Avg Rating',
@@ -206,10 +207,10 @@ const AdminDashboard = () => {
             pointRadius: 5,
             pointHoverRadius: 7
         }],
-    } : null;
+    } : null, [data]);
 
     // ── Department comparison bar ────────────────────────────────────
-    const deptChart = data?.deptData?.length ? {
+    const deptChart = React.useMemo(() => data?.deptData?.length ? {
         labels: data.deptData.map(d => d.deptCode),
         datasets: [{
             label: 'Avg Rating',
@@ -218,7 +219,7 @@ const AdminDashboard = () => {
             borderRadius: 8,
             barThickness: 25
         }],
-    } : null;
+    } : null, [data]);
 
     if (loading) {
         return (
@@ -234,7 +235,7 @@ const AdminDashboard = () => {
     return (
         <AdminLayout title="Dashboard">
             {/* ── Page Header ─────────────────────────────── */}
-            <div className="dash-header" style={{ marginBottom: '2rem' }}>
+            <div className="dash-header" style={{ marginBottom: '1.25rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>
                         Faculty Feedback <span style={{ color: 'var(--clr-primary)' }}>Analytics</span>
@@ -253,9 +254,7 @@ const AdminDashboard = () => {
                         className="btn btn-primary"
                         onClick={handleGeneratePDF}
                         disabled={pdfLoading}
-                        style={{ background: 'var(--clr-primary)', color: '#fff', fontSize: '0.815rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-hover-bg)'; e.currentTarget.style.color = 'var(--clr-hover-text)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--clr-primary)'; e.currentTarget.style.color = '#fff'; }}
+                        style={{ fontSize: '0.815rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     >
                         <FiDownload size={14} />
                         {pdfLoading ? 'Generating…' : 'Generate PDF Report'}
@@ -277,7 +276,7 @@ const AdminDashboard = () => {
             )}
 
             {/* ── Dept Filter ─────────────────────────────── */}
-            <div className="card-premium" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem 2rem' }}>
+            <div className="card-premium" style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1rem 1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <FiLayers style={{ color: 'var(--clr-primary)' }} size={20} />
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filter Department</span>
@@ -295,7 +294,7 @@ const AdminDashboard = () => {
                 </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1rem', marginBottom: '1.25rem' }}>
                 {/* ── Feedback Period Settings ───────── */}
                 <div className="system-settings-panel">
                     <div>
@@ -363,29 +362,29 @@ const AdminDashboard = () => {
             </div>
 
             {/* ── KPI Cards ───────────────────────────────── */}
-            <div className="kpi-grid" style={{ marginBottom: '2.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div className="kpi-grid" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 <KpiCard
                     icon={<FiMessageSquare size={20} />}
                     label="Total Feedback" value={summary?.totalFeedback ?? 0}
-                    sub="Aggregated submissions" color="#685D54"
+                    sub="Aggregated submissions" color="var(--clr-primary)"
                 />
                 <KpiCard
                     icon={<FiStar size={20} />}
                     label="Avg Rating"
                     value={`${fmt(summary?.avgOverallRating)} / 5`}
-                    sub="Institutional average" color="#A39382"
+                    sub="Institutional average" color="var(--clr-primary)"
                 />
                 <KpiCard
                     icon={<FiLayers size={20} />}
                     label="Active Depts"
                     value={`${summary?.activeDepartments ?? 0} / ${summary?.totalDepartments ?? 8}`}
-                    sub="Current participation" color="#685D54"
+                    sub="Current participation" color="var(--clr-primary)"
                 />
                 <KpiCard
                     icon={<FiBook size={20} />}
                     label="Subjects"
                     value={summary?.subjectsRated ?? 0}
-                    sub="Unique rated courses" color="#A39382"
+                    sub="Unique rated courses" color="var(--clr-primary)"
                 />
             </div>
 
@@ -395,7 +394,7 @@ const AdminDashboard = () => {
                     <div className="chart-card-header">
                         <h3>Faculty Rating Comparison</h3>
                     </div>
-                    <div style={{ height: 300 }}>
+                    <div style={{ height: 240 }}>
                         {facultyChart ? (
                             <Bar ref={facultyChartRef} data={facultyChart} options={baseChartOpts({
                                 indexAxis: 'y',
@@ -412,7 +411,7 @@ const AdminDashboard = () => {
                     <div className="chart-card-header">
                         <h3>Rating Distribution</h3>
                     </div>
-                    <div style={{ height: 300 }}>
+                    <div style={{ height: 240 }}>
                         {pieDist ? (
                             <Pie data={pieDist} options={baseChartOpts({
                                 plugins: {
@@ -434,7 +433,7 @@ const AdminDashboard = () => {
                     <div className="chart-card-header">
                         <h3>Semester Rating Trend</h3>
                     </div>
-                    <div style={{ height: 260 }}>
+                    <div style={{ height: 220 }}>
                         {trendChart ? (
                             <Line ref={trendChartRef} data={trendChart} options={baseChartOpts({
                                 scales: {
@@ -450,7 +449,7 @@ const AdminDashboard = () => {
                     <div className="chart-card-header">
                         <h3>Department Comparison</h3>
                     </div>
-                    <div style={{ height: 260 }}>
+                    <div style={{ height: 220 }}>
                         {deptChart ? (
                             <Bar data={deptChart} options={baseChartOpts({
                                 plugins: { legend: { display: false }, tooltip: TIP },
@@ -481,7 +480,7 @@ const KpiCard = ({ icon, label, value, sub, color }) => (
         </div>
         <div>
             <div className="kpi-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>{label}</div>
-            <div className="kpi-value" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text-on-oat)' }}>{value}</div>
+            <div className="kpi-value" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)' }}>{value}</div>
             <div className="kpi-sub" style={{ fontSize: '0.75rem', color: 'var(--clr-text-2)', marginTop: '0.1rem' }}>{sub}</div>
         </div>
     </div>
@@ -492,8 +491,8 @@ const NoData = () => (
         <div className="icon-box" style={{ background: 'var(--clr-bg)', color: 'var(--clr-text)', marginBottom: '1.25rem', width: '60px', height: '60px', border: '1px solid var(--clr-border)' }}>
             <FiInbox size={24} />
         </div>
-        <span style={{ fontWeight: 800, color: 'var(--clr-text-on-oat)', textTransform: 'uppercase', fontSize: '0.85rem' }}>No analytics available</span>
-        <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-3)', marginTop: '0.5rem' }}>Check back later once more feedback is collected</span>
+        <span style={{ fontWeight: 800, color: 'var(--clr-text)', textTransform: 'uppercase', fontSize: '0.85rem' }}>No analytics available</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-2)', marginTop: '0.5rem' }}>Check back later once more feedback is collected</span>
     </div>
 );
 

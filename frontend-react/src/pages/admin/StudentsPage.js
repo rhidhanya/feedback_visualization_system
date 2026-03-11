@@ -204,7 +204,7 @@ const StudentsPage = () => {
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.department}
                         onChange={e => { setFilters(p => ({ ...p, department: e.target.value })); setPage(1); }}
                     >
@@ -215,7 +215,7 @@ const StudentsPage = () => {
                 <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Semester</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.semester}
                         onChange={e => { setFilters(p => ({ ...p, semester: e.target.value })); setPage(1); }}
                     >
@@ -226,7 +226,7 @@ const StudentsPage = () => {
                 <div className="input-group" style={{ margin: 0, flex: 0.8 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Status</label>
                     <select
-                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text-on-oat)' }}
+                        style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', padding: '0.65rem', width: '100%', color: 'var(--clr-text)' }}
                         value={filters.isActive}
                         onChange={e => { setFilters(p => ({ ...p, isActive: e.target.value })); setPage(1); }}
                     >
@@ -244,7 +244,7 @@ const StudentsPage = () => {
                             placeholder="Search by Name, Roll No..." 
                             value={search}
                             onChange={e => { setSearch(e.target.value); setPage(1); }}
-                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text-on-oat)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
+                            style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
                         />
                     </div>
                 </div>

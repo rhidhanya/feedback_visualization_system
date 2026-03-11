@@ -38,8 +38,8 @@ const AdminLogin = () => {
                     <div className="login-logo-wrap">
                         <CampusLensIcon size={48} color="var(--clr-primary)" />
                     </div>
-                    <h1 className="login-app-name">CampusLens</h1>
-                    <div className="login-role-badge admin">
+                    <h1 className="login-app-name" style={{ color: 'var(--clr-text)', fontSize: '2rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>CampusLens</h1>
+                    <div className="login-role-badge admin" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                         ADMIN ACCESS
                     </div>
                 </div>
@@ -102,6 +102,7 @@ const AdminLogin = () => {
                         type="submit"
                         className="btn-login-secure"
                         disabled={loading}
+                        style={{ width: '100%', height: '54px' }}
                     >
                         {loading
                             ? <><FiLoader size={18} className="spinner" /> Signing in...</>

@@ -16,7 +16,7 @@ ChartJS.register(
 );
 
 // ── Shared chart styling (white-bg friendly) ───────────────────────────────
-const GRID = '#e2e8f0';
+const GRID = 'var(--clr-chart-grid)';
 const TEXT = '#475569';
 const TIP = {
     backgroundColor: '#fff',
@@ -31,15 +31,15 @@ const LEG = { color: TEXT, font: { family: 'Inter', size: 12 }, padding: 14 };
 
 
 // Strict palette – consistent colors
-const CHART_COLORS = ['#0ABAB5', '#006994', '#9BC4E2', '#8FE2E1'];
+const CHART_COLORS = ['#1E4DB7', '#3B82F6', '#60A5FA', '#94A3B8'];
 const ACCENT = CHART_COLORS;
 
 const performanceBadge = (r) => {
     if (!r) return { label: '—', color: '#64748b' };
     if (r >= 4.5) return { label: 'Excellent', color: '#1E4DB7' };
-    if (r >= 3.5) return { label: 'Good', color: '#1C8C8C' };
-    if (r >= 2.5) return { label: 'Average', color: '#6E8CA8' };
-    return { label: 'Needs Attention', color: '#E53935' };
+    if (r >= 3.5) return { label: 'Good', color: '#10B981' };
+    if (r >= 2.5) return { label: 'Average', color: '#64748B' };
+    return { label: 'Needs Attention', color: '#EF4444' };
 };
 
 // ── Filter controls ────────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ const FacultyAnalytics = () => {
                 <main className="fa-detail">
                     {!selected ? (
                         <div className="fa-placeholder">
-                            <FiUsers size={42} style={{ color: 'var(--clr-primary-lt)' }} />
+                            <FiUsers size={42} style={{ color: 'var(--clr-primary)' }} />
                             <p>Select a faculty member to view analytics</p>
                         </div>
                     ) : detailLoading ? (
@@ -199,7 +199,7 @@ const FacultyOverviewOnly = ({ faculty }) => (
         <h2 className="fa-name">{faculty.facultyName}</h2>
         <p style={{ color: '#64748b' }}>{faculty.deptName} · {faculty.cluster}</p>
         <div className="fa-no-data">
-            <FiInbox size={22} style={{ marginRight: '0.5rem', color: 'var(--clr-primary-lt)' }} />
+            <FiInbox size={22} style={{ marginRight: '0.5rem', color: 'var(--clr-primary)' }} />
             No feedback submitted yet for this faculty
         </div>
     </div>
@@ -218,10 +218,10 @@ const FacultyDetailView = ({ faculty, detail, filterSem, setFilterSem }) => {
         datasets: [{
             label: 'Avg Rating',
             data: trend.map(t => t.avgRating || 0),
-            borderColor: '#0ABAB5',
-            backgroundColor: 'rgba(10, 186, 181, 0.1)',
+            borderColor: '#1E4DB7',
+            backgroundColor: 'rgba(30, 77, 183, 0.1)',
             fill: true, tension: 0.4,
-            pointRadius: 5, pointBackgroundColor: '#0ABAB5',
+            pointRadius: 5, pointBackgroundColor: '#1E4DB7',
             pointHoverRadius: 7
         }],
     };
@@ -243,6 +243,7 @@ const FacultyDetailView = ({ faculty, detail, filterSem, setFilterSem }) => {
     const chartOpts = () => ({
         responsive: true, 
         maintainAspectRatio: false,
+        layout: { padding: 10 },
         plugins: {
             legend: { labels: LEG },
             tooltip: { ...TIP, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y ?? ctx.parsed.x ?? '—').toFixed(2)}` } },
