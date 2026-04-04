@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from './api/axios';
 import { useNavigate } from 'react-router-dom';
 import { FiUser, FiChevronRight, FiDownload } from 'react-icons/fi';
 import './App.css';
@@ -34,11 +34,7 @@ const Admin = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      // Using the new route to get all users
-      const res = await axios.get(`http://localhost:5000/api/auth/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/auth/users');
       // The new route returns array of users directly
       setUsersData(res.data || []);
 
@@ -367,10 +363,7 @@ const Admin = () => {
                       onClick={async () => {
                         if (!window.confirm(`Are you sure you want to delete ${selectedUser.name}?`)) return;
                         try {
-                          const token = localStorage.getItem('token');
-                          await axios.delete(`http://localhost:5000/api/auth/users/${selectedUser._id}`, {
-                            headers: { Authorization: `Bearer ${token}` }
-                          });
+                          await api.delete(`/auth/users/${selectedUser._id}`);
                           alert('User deleted');
                           window.location.reload();
                         } catch (err) {
@@ -394,11 +387,8 @@ const Admin = () => {
                     <button
                       onClick={async () => {
                         try {
-                          const token = localStorage.getItem('token');
-                          const newStatus = selectedUser.status === 'active' ? 'inactive' : 'active';
-                          const res = await axios.put(`http://localhost:5000/api/auth/users/${selectedUser._id}/status`,
-                            { status: newStatus },
-                            { headers: { Authorization: `Bearer ${token}` } }
+                          const res = await api.put(`/auth/users/${selectedUser._id}/status`,
+                            { status: newStatus }
                           );
                           setSelectedUser(prev => ({ ...prev, status: res.data.status }));
                           setUsersData(prev => prev.map(u => u._id === selectedUser._id ? { ...u, status: res.data.status } : u));

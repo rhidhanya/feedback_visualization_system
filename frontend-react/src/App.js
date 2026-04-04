@@ -1,49 +1,68 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { FiAlertCircle } from 'react-icons/fi';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import MessageNotifier from './components/MessageNotifier';
 
-// Public pages
-import Login from './pages/Login';
-import StudentRegister from './pages/StudentRegister';
-import AdminLogin from './pages/AdminLogin';
+// ── Lazy-loaded Public Pages ─────────────────────────────────────────────────
+const Login = lazy(() => import('./pages/Login'));
+const StudentRegister = lazy(() => import('./pages/StudentRegister'));
 
-// Admin pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import FacultyAnalytics from './pages/admin/FacultyAnalytics';
-import FacultyManagement from './pages/admin/FacultyManagement';
-import SubjectManagement from './pages/admin/SubjectManagement';
-import StudentsPage from './pages/admin/StudentsPage';
-import DomainOverview from './pages/admin/DomainOverview';
-import DomainHeadManagement from './pages/admin/DomainHeadManagement';
-import NotificationCenter from './pages/admin/NotificationCenter';
-import AdminDomainDashboard from './pages/admin/AdminDomainDashboard';
-import HodManagement from './pages/admin/HodManagement';
+// ── Lazy-loaded Admin Pages ──────────────────────────────────────────────────
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const FacultyAnalytics = lazy(() => import('./pages/admin/FacultyAnalytics'));
+const FacultyManagement = lazy(() => import('./pages/admin/FacultyManagement'));
+const SubjectManagement = lazy(() => import('./pages/admin/SubjectManagement'));
+const StudentsPage = lazy(() => import('./pages/admin/StudentsPage'));
+const DomainOverview = lazy(() => import('./pages/admin/DomainOverview'));
+const DomainHeadManagement = lazy(() => import('./pages/admin/DomainHeadManagement'));
+const NotificationCenter = lazy(() => import('./pages/admin/NotificationCenter'));
+const AdminDomainDashboard = lazy(() => import('./pages/admin/AdminDomainDashboard'));
+const HodManagement = lazy(() => import('./pages/admin/HodManagement'));
+const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
 
+// ── Lazy-loaded Student Pages ────────────────────────────────────────────────
+const StudentHome = lazy(() => import('./pages/student/StudentHome'));
+const FeedbackForm = lazy(() => import('./pages/student/FeedbackForm'));
+const DomainFeedback = lazy(() => import('./pages/student/DomainFeedback'));
+const StudentQueries = lazy(() => import('./pages/student/StudentQueries'));
 
-// Student pages
-import StudentHome from './pages/student/StudentHome';
-import FeedbackForm from './pages/student/FeedbackForm';
-import DomainFeedback from './pages/student/DomainFeedback';
-import StudentQueries from './pages/student/StudentQueries';
+// ── Lazy-loaded HOD Pages ────────────────────────────────────────────────────
+const HodDashboard = lazy(() => import('./pages/hod/HodDashboard'));
 
-// HOD pages
-import HodDashboard from './pages/hod/HodDashboard';
+// ── Lazy-loaded Domain Head Pages ────────────────────────────────────────────
+const DomainHeadDashboard = lazy(() => import('./pages/domain-head/DomainHeadDashboard'));
+const DomainHeadFeedback = lazy(() => import('./pages/domain-head/DomainHeadFeedback'));
+const DomainHeadNotifications = lazy(() => import('./pages/domain-head/DomainHeadNotifications'));
+const DomainHeadIssues = lazy(() => import('./pages/domain-head/DomainHeadIssues'));
+const DomainHeadQueries = lazy(() => import('./pages/domain-head/DomainHeadQueries'));
 
-// Domain Head pages
-import DomainHeadDashboard from './pages/domain-head/DomainHeadDashboard';
-import DomainHeadFeedback from './pages/domain-head/DomainHeadFeedback';
-import DomainHeadNotifications from './pages/domain-head/DomainHeadNotifications';
-import DomainHeadIssues from './pages/domain-head/DomainHeadIssues';
+// ── Lazy-loaded Monitor/Principal Pages ──────────────────────────────────────
+const PrincipalDashboard = lazy(() => import('./pages/monitor/PrincipalDashboard'));
+const MonitorDomains = lazy(() => import('./pages/monitor/MonitorDomains'));
+const MonitorIssues = lazy(() => import('./pages/monitor/MonitorIssues'));
 
-// Monitor pages (Principal)
-import PrincipalDashboard from './pages/monitor/PrincipalDashboard';
-import MonitorDomains from './pages/monitor/MonitorDomains';
-import MonitorIssues from './pages/monitor/MonitorIssues';
+// ── Lazy-loaded Shared Pages ─────────────────────────────────────────────────
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 
-// Shared
-import MessagesPage from './pages/MessagesPage';
+// ── Global Loading Fallback ──────────────────────────────────────────────────
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    flexDirection: 'column',
+    gap: '1rem',
+    background: 'var(--clr-surface, #f8fafc)'
+  }}>
+    <div className="spinner" style={{ width: 36, height: 36 }} />
+    <p style={{ color: 'var(--clr-text-3, #94a3b8)', fontSize: '0.875rem', fontWeight: 600 }}>
+      Loading...
+    </p>
+  </div>
+);
 
 const Unauthorized = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: '1rem' }}>
@@ -58,62 +77,60 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* ── Public routes: single login URL for everyone but admin ─── */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/student-register" element={<StudentRegister />} />
-          
-          {/* Admin — /admin/login exclusively */}
-          <Route path="/admin/login" element={<AdminLogin />} />
+        <Suspense fallback={<PageLoader />}>
+          <MessageNotifier />
+          <Routes>
+            {/* ── Public routes ──────────────────────────────────────── */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/student-register" element={<StudentRegister />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-          <Route path="/unauthorized" element={<Unauthorized />} />
+            {/* ── Admin protected routes ─────────────────────────────── */}
+            <Route path="/admin" element={<Navigate to="/admin/domain-overview" replace />} />
+            <Route path="/admin/faculty" element={<ProtectedRoute role="admin"><FacultyAnalytics /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute role="admin"><StudentsPage /></ProtectedRoute>} />
+            <Route path="/admin/users-management" element={<ProtectedRoute role="admin"><UsersPage /></ProtectedRoute>} />
+            <Route path="/admin/faculty-management" element={<ProtectedRoute role="admin"><FacultyManagement /></ProtectedRoute>} />
+            <Route path="/admin/subjects-management" element={<ProtectedRoute role="admin"><SubjectManagement /></ProtectedRoute>} />
+            <Route path="/admin/domain-overview" element={<ProtectedRoute role="admin"><DomainOverview /></ProtectedRoute>} />
+            <Route path="/admin/domain/:domainSlug" element={<ProtectedRoute role="admin"><AdminDomainDashboard /></ProtectedRoute>} />
+            <Route path="/admin/domain-heads" element={<ProtectedRoute role="admin"><DomainHeadManagement /></ProtectedRoute>} />
+            <Route path="/admin/hod-management" element={<ProtectedRoute role="admin"><HodManagement /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute role="admin"><NotificationCenter /></ProtectedRoute>} />
 
-          {/* ── Admin protected routes ────────────────────── */}
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/faculty" element={<ProtectedRoute role="admin"><FacultyAnalytics /></ProtectedRoute>} />
-          <Route path="/admin/users" element={<ProtectedRoute role="admin"><StudentsPage /></ProtectedRoute>} />
-          <Route path="/admin/faculty-management" element={<ProtectedRoute role="admin"><FacultyManagement /></ProtectedRoute>} />
-          <Route path="/admin/subjects-management" element={<ProtectedRoute role="admin"><SubjectManagement /></ProtectedRoute>} />
-          <Route path="/admin/domain-overview" element={<ProtectedRoute role="admin"><DomainOverview /></ProtectedRoute>} />
-          <Route path="/admin/domain/:domainSlug" element={<ProtectedRoute role="admin"><AdminDomainDashboard /></ProtectedRoute>} />
-          <Route path="/admin/domain-heads" element={<ProtectedRoute role="admin"><DomainHeadManagement /></ProtectedRoute>} />
-          <Route path="/admin/hod-management" element={<ProtectedRoute role="admin"><HodManagement /></ProtectedRoute>} />
-          <Route path="/admin/notifications" element={<ProtectedRoute role="admin"><NotificationCenter /></ProtectedRoute>} />
+            {/* ── Student protected routes ───────────────────────────── */}
+            <Route path="/student/home" element={<ProtectedRoute role="student"><StudentHome /></ProtectedRoute>} />
+            <Route path="/student/feedback/:subjectId" element={<ProtectedRoute role="student"><FeedbackForm /></ProtectedRoute>} />
+            <Route path="/student/domain-feedback" element={<ProtectedRoute role="student"><DomainFeedback /></ProtectedRoute>} />
+            <Route path="/student/queries" element={<ProtectedRoute role="student"><StudentQueries /></ProtectedRoute>} />
 
+            {/* ── HOD protected routes ───────────────────────────────── */}
+            <Route path="/hod/dashboard" element={<ProtectedRoute role="hod"><HodDashboard /></ProtectedRoute>} />
 
+            {/* ── Domain Head protected routes ───────────────────────── */}
+            <Route path="/domain-head/dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
+            <Route path="/transport-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
+            <Route path="/mess-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
+            <Route path="/hostel-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
+            <Route path="/sanitation-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
+            <Route path="/domain-head/feedback" element={<ProtectedRoute role="domain_head"><DomainHeadFeedback /></ProtectedRoute>} />
+            <Route path="/domain-head/notifications" element={<ProtectedRoute role="domain_head"><DomainHeadNotifications /></ProtectedRoute>} />
+            <Route path="/domain-head/issues" element={<ProtectedRoute role="domain_head"><DomainHeadIssues /></ProtectedRoute>} />
+            <Route path="/domain-head/queries" element={<ProtectedRoute role="domain_head"><DomainHeadQueries /></ProtectedRoute>} />
 
-          {/* ── Student protected routes ──────────────────── */}
-          <Route path="/student/home" element={<ProtectedRoute role="student"><StudentHome /></ProtectedRoute>} />
-          <Route path="/student/feedback/:subjectId" element={<ProtectedRoute role="student"><FeedbackForm /></ProtectedRoute>} />
-          <Route path="/student/domain-feedback" element={<ProtectedRoute role="student"><DomainFeedback /></ProtectedRoute>} />
-          <Route path="/student/queries" element={<ProtectedRoute role="student"><StudentQueries /></ProtectedRoute>} />
+            {/* ── Principal protected routes ─────────────────────────── */}
+            <Route path="/principal/dashboard" element={<ProtectedRoute role={['principal', 'dean']}><PrincipalDashboard /></ProtectedRoute>} />
+            <Route path="/monitor/domains" element={<ProtectedRoute role={['principal', 'dean']}><MonitorDomains /></ProtectedRoute>} />
+            <Route path="/monitor/issues" element={<ProtectedRoute role={['principal', 'dean']}><MonitorIssues /></ProtectedRoute>} />
 
-          {/* ── HOD protected routes ──────────────────────── */}
-          <Route path="/hod/dashboard" element={<ProtectedRoute role="hod"><HodDashboard /></ProtectedRoute>} />
+            {/* ── Shared protected routes ────────────────────────────── */}
+            <Route path="/messages" element={<ProtectedRoute role={['admin', 'principal', 'hod', 'faculty', 'domain_head', 'dean']}><MessagesPage /></ProtectedRoute>} />
 
-          {/* ── Domain Head protected routes ──────────────── */}
-          <Route path="/domain-head/dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
-          <Route path="/transport-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
-          <Route path="/mess-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
-          <Route path="/hostel-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
-          <Route path="/sanitation-dashboard" element={<ProtectedRoute role="domain_head"><DomainHeadDashboard /></ProtectedRoute>} />
-          <Route path="/domain-head/feedback" element={<ProtectedRoute role="domain_head"><DomainHeadFeedback /></ProtectedRoute>} />
-          <Route path="/domain-head/notifications" element={<ProtectedRoute role="domain_head"><DomainHeadNotifications /></ProtectedRoute>} />
-          <Route path="/domain-head/issues" element={<ProtectedRoute role="domain_head"><DomainHeadIssues /></ProtectedRoute>} />
-
-          {/* ── Principal protected routes ────────── */}
-          <Route path="/principal/dashboard" element={<ProtectedRoute role="principal"><PrincipalDashboard /></ProtectedRoute>} />
-          <Route path="/monitor/domains" element={<ProtectedRoute role={['principal']}><MonitorDomains /></ProtectedRoute>} />
-          <Route path="/monitor/issues" element={<ProtectedRoute role={['principal']}><MonitorIssues /></ProtectedRoute>} />
-
-          {/* ── Shared protected routes ───────────── */}
-          <Route path="/messages" element={<ProtectedRoute role={['admin', 'principal', 'hod', 'faculty', 'domain_head', 'dean']}><MessagesPage /></ProtectedRoute>} />
-
-          {/* Default: send to unified login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/*" element={<Navigate to="/login" replace />} />
-        </Routes>
+            {/* Default: send to unified login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
       </Router>
     </AuthProvider>
   );

@@ -4,14 +4,33 @@ import GlobalToast from '../components/GlobalToast';
 
 const AuthContext = createContext();
 
-const getKeys = () => {
-    const isLocalAdmin = window.location.pathname.startsWith('/admin');
-    const prefix = isLocalAdmin ? 'admin_' : 'campuslens_';
-    return {
-        TOKEN: `${prefix}auth_token`,
-        USER: `${prefix}auth_user`,
-        isLocalAdmin
-    };
+// Simple fixed keys — sessionStorage is NATIVELY tab-isolated by the browser.
+// No custom tab IDs needed. Each browser tab has its own sessionStorage.
+// Tab 1 (admin) and Tab 2 (student) cannot read each other's sessionStorage.
+const TOKEN_KEY = 'campuslens_auth_token';
+const USER_KEY  = 'campuslens_auth_user';
+
+// Read token with sessionStorage priority; fall back to localStorage for
+// existing sessions that were stored there before this update.
+// Side-effect: migrates the old localStorage entry into sessionStorage.
+const readToken = () => {
+    const ss = sessionStorage.getItem(TOKEN_KEY);
+    if (ss) return ss;
+    const ls = localStorage.getItem(TOKEN_KEY);
+    if (ls) {
+        // Migrate into this tab's sessionStorage so reloads keep working.
+        sessionStorage.setItem(TOKEN_KEY, ls);
+    }
+    return ls;
+};
+
+const readUser = () => {
+    const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    if (!sessionStorage.getItem(USER_KEY)) {
+        sessionStorage.setItem(USER_KEY, raw); // migrate
+    }
+    try { return JSON.parse(raw); } catch { return null; }
 };
 
 // Shared error message extraction so "Login failed" is replaced with actionable messages
@@ -24,26 +43,15 @@ const getLoginErrorMessage = (err) => {
 };
 
 export const AuthProvider = ({ children }) => {
-    // State for token & user
-    const [token, setToken] = useState(() => {
-        const { TOKEN } = getKeys();
-        return localStorage.getItem(TOKEN) || sessionStorage.getItem(TOKEN);
-    });
-    const [user, setUser] = useState(() => {
-        const { USER } = getKeys();
-        const stored = localStorage.getItem(USER) || sessionStorage.getItem(USER);
-        try {
-            return stored ? JSON.parse(stored) : null;
-        } catch {
-            return null;
-        }
-    });
+    // sessionStorage is natively tab-isolated — Tab 1 (admin) and Tab 2 (student)
+    // have completely separate sessionStorage spaces. No custom tab IDs needed.
+    // readToken() / readUser() migrate existing localStorage sessions on first load.
+    const [token, setToken] = useState(readToken);
+    const [user,  setUser]  = useState(readUser);
 
-    const [loading, setLoading] = useState(() => {
-        const { TOKEN } = getKeys();
-        const storedToken = localStorage.getItem(TOKEN) || sessionStorage.getItem(TOKEN);
-        return !!storedToken;
-    });
+    // loading=true while we verify the stored token against /auth/me.
+    // ProtectedRoute waits for loading=false before deciding to redirect.
+    const [loading, setLoading] = useState(() => !!readToken());
 
     // Toast Notification State
     const [toastNotification, setToastNotification] = useState(null);
@@ -51,53 +59,73 @@ export const AuthProvider = ({ children }) => {
 
     // ── Logout ─────────────────────────────────────────────────────────────
     const logout = useCallback(() => {
-        const { TOKEN, USER } = getKeys();
-        
-        sessionStorage.removeItem(TOKEN);
-        sessionStorage.removeItem(USER);
-        localStorage.removeItem(TOKEN);
-        localStorage.removeItem(USER);
+        // Clear this tab's sessionStorage only (doesn't touch other tabs).
+        // Also clear localStorage to clean up legacy/migrated entries.
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         setToken(null);
         setUser(null);
     }, []);
 
-    // ── Shared helper to persist auth state (isolated by portal/role) ────
+    // ── Shared helper to persist auth state ────────────────────────────────
     const persist = useCallback((data) => {
-        const { TOKEN, USER } = getKeys();
-        
-        // ALWAYS use localStorage as prioritized by the user for persistence
-        localStorage.setItem(TOKEN, data.token);
-        localStorage.setItem(USER, JSON.stringify(data.user));
-        
-        // Also sync state
+        // Write to sessionStorage ONLY — it is natively tab-isolated.
+        // Writing to localStorage is intentionally skipped to prevent
+        // a new login on this tab from overwriting tokens in other tabs.
+        sessionStorage.setItem(TOKEN_KEY, data.token);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
     }, []);
 
+    // ── Sync Headers ────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (token) {
+            api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        } else {
+            delete api.defaults.headers.common["Authorization"];
+        }
+    }, [token]);
+
     // ── Verify session on load ──────────────────────────────────────────────
+    // Runs once on mount. Confirms the stored token is still valid with the server.
+    // loading stays true until this resolves → ProtectedRoute shows a spinner
+    // instead of redirecting, which fixes the "reload → unauthorized" bug.
     useEffect(() => {
         const verifySession = async () => {
-            const { TOKEN, USER } = getKeys();
-            const storedToken = localStorage.getItem(TOKEN) || sessionStorage.getItem(TOKEN);
+            const storedToken = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
             if (!storedToken) {
                 setLoading(false);
                 return;
             }
 
+            // Ensure the axios header is set before the verification call
+            api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
             try {
                 const { data } = await api.get('/auth/me');
                 if (data.success) {
-                    setUser(data.user);
+                    const mergedUser = { ...data.user };
+                    // Preserve role if server response is missing it (safety net)
+                    if (!mergedUser.role) {
+                        const cachedUser = readUser();
+                        if (cachedUser?.role) mergedUser.role = cachedUser.role;
+                    }
+                    setUser(mergedUser);
                     setToken(storedToken);
-                    
-                    sessionStorage.setItem(USER, JSON.stringify(data.user));
-                    localStorage.setItem(USER, JSON.stringify(data.user));
+                    // Keep sessionStorage in sync with the freshest user data
+                    sessionStorage.setItem(USER_KEY, JSON.stringify(mergedUser));
                 }
             } catch (err) {
-                console.error("Session verification failed:", err.message);
-                if (err.response?.status === 401 || err.response?.status === 403) {
+                console.error('[AuthContext] Session verification failed:', err.message);
+                // Only force logout on explicit auth rejection (don't log out on network errors)
+                if (err.response?.status === 401) {
                     logout();
                 }
+                // On other errors (5xx, network down), leave the cached token in place
+                // so the user isn't unexpectedly kicked out by a temporary server issue.
             } finally {
                 setLoading(false);
             }
@@ -123,7 +151,7 @@ export const AuthProvider = ({ children }) => {
                         const isSentByMe = latestMessage.senderRole === user.role && latestMessage.sender?.email && latestMessage.sender.email !== 'system';
                         
                         if (!isSentByMe) {
-                            const senderName = latestMessage.sender?.name || latestMessage.senderRole.toUpperCase();
+                            const senderName = latestMessage.sender?.name || latestMessage.senderRole?.toUpperCase() || 'SYSTEM';
                             setToastNotification({
                                 title: `New message from ${senderName}`,
                                 message: latestMessage.text?.length > 40 ? latestMessage.text.substring(0, 40) + '...' : latestMessage.text

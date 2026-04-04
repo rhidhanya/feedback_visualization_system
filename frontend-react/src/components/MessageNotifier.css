@@ -1,0 +1,74 @@
+.message-popup {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 10000;
+    border: 1px solid #e2e8f0;
+    animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 280px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.popup-icon {
+    width: 40px;
+    height: 40px;
+    background: #1e4db7;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.popup-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+.popup-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.popup-text {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.popup-close:hover {
+    color: #64748b;
+}

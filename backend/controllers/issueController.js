@@ -1,4 +1,5 @@
 const IssueStatus = require("../models/IssueStatus");
+const { cache, buildKey } = require("../utils/cache");
 
 // GET /api/issues?domain=transport
 exports.getIssues = async (req, res) => {
@@ -47,7 +48,15 @@ exports.updateIssueStatus = async (req, res) => {
         await issue.save();
 
         // Notify admin of status change
-        if (req.io) req.io.emit("issueStatusUpdated", { domain: issue.domain, status });
+        if (req.io) {
+            req.io.emit("issueStatusUpdated", { domain: issue.domain, status });
+            // Real-time session notification
+            req.io.emit('session_notification', {
+                type: 'issue',
+                message: `${issue.domain.toUpperCase()} issue marked as ${status}`,
+                timestamp: new Date()
+            });
+        }
 
         const populated = await IssueStatus.findById(issue._id)
             .populate("notificationId")
@@ -62,6 +71,9 @@ exports.updateIssueStatus = async (req, res) => {
 
 // GET /api/issues/summary — overview counts by domain
 exports.getIssueSummary = async (req, res) => {
+    const cacheKey = buildKey('issue-summary', req.query);
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const results = await IssueStatus.aggregate([
             {
@@ -80,7 +92,9 @@ exports.getIssueSummary = async (req, res) => {
             summary[r._id.domain][r._id.status] = r.count;
         });
 
-        res.json({ success: true, data: summary });
+        const result = { success: true, data: summary };
+        cache.set(cacheKey, result, 300); // 5 min cache
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }

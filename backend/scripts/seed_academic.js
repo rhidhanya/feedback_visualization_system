@@ -292,7 +292,7 @@ const seed = async () => {
         await User.create({
             name: "System Admin",
             email: "admin@bitsathy.in",
-            password: "admin123",
+            password: "password123",
             role: "admin",
         });
         console.log("✅ Admin created: admin@bitsathy.in / admin123");
@@ -319,7 +319,7 @@ const seed = async () => {
             const student = await User.create({
                 name: s.name,
                 email: s.email,
-                password: "student123",
+                password: "password123",
                 role: "student",
                 rollNumber: s.roll,
                 department: deptMap[s.code]._id,
@@ -345,8 +345,8 @@ const seed = async () => {
     console.log(`\n👨‍🏫 Faculty: ${Object.values(FACULTY).flat().length} total`);
     console.log(`   • 8 faculty per department across 8 departments = 64`);
     console.log(`\n🔐 Login Credentials:`);
-    console.log(`   Admin:   admin@bitsathy.in / admin123`);
-    console.log(`   Students (all password: student123):`);
+    console.log(`   Admin:   admin@bitsathy.in / password123`);
+    console.log(`   Students (all password: password123):`);
     for (const s of studentData) {
         const dept = DEPARTMENTS.find(d => d.code === s.code);
         console.log(`     ${s.email.padEnd(28)} (${s.code} | ${dept.cluster} | Sem 3)`);

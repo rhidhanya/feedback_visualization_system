@@ -99,6 +99,15 @@ exports.login = async (req, res) => {
 
         const token = signToken(user);
 
+        // Emit login event for real-time session notifications
+        if (req.io) {
+            req.io.emit('session_notification', {
+                type: 'login',
+                message: `${user.name} (${user.role.toUpperCase()}) logged in`,
+                timestamp: new Date()
+            });
+        }
+
         res.json({
             success: true,
             message: "Login successful",
@@ -112,6 +121,9 @@ exports.login = async (req, res) => {
                 semester: user.semester,
                 residenceType: user.residenceType,
                 department: user.department,
+                facultyId: user.facultyId,
+                hodId: user.hodId,
+                assignedDomain: user.assignedDomain,
             },
         });
     } catch (err) {

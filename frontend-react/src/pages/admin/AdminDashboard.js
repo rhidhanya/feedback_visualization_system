@@ -9,6 +9,7 @@ import { io } from 'socket.io-client';
 import { FiMessageSquare, FiStar, FiLayers, FiBook, FiInbox, FiShield, FiDownload, FiCheck, FiAlertTriangle } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import { generateDashboardPDF } from '../../utils/pdfReportGenerator';
 import './AdminDashboard.css';
 
@@ -19,13 +20,10 @@ ChartJS.register(
 
 // ── Chart defaults ─────────────────────────────────────────────────────────
 const OAT = '#F8FAFC';
-const CHARCOAL = '#0F172A';
-const MOCHA = '#64748B';
 const TAUPE = '#1E4DB7'; // Institutional Blue
-const MILK = '#FFFFFF';
 
 const TEXT = '#0F172A'; // Black text
-const GRID = 'var(--clr-chart-grid)'; // Subtle lines
+const GRID = 'rgba(0,0,0,0.05)'; // Subtle lines
 const TIP = {
     backgroundColor: '#FFFFFF',
     titleColor: '#0F172A',
@@ -55,14 +53,16 @@ const baseChartOpts = (extraOpts = {}) => ({
 // Palette – clean Blue & Slate compatible variations
 const CHART_COLORS = ['#1E4DB7', '#3B82F6', '#60A5FA', '#94A3B8'];
 
-// Dept filter options
-// eslint-disable-next-line no-unused-vars
-const DEPT_OPTIONS = ['All', 'CSE', 'IT', 'CSBS', 'MECH', 'ECE', 'EEE', 'BIOTECH', 'AGRI'];
+
 
 const AdminDashboard = () => {
+    const { user } = useAuth();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [dept, setDept] = useState('');
+
+    // Sanitize dept: handle populated department object vs ID string
+    const userDeptId = user?.department?._id || user?.department || '';
+    const [dept, setDept] = useState(user?.role === 'hod' ? userDeptId : '');
     const [deptList, setDeptList] = useState([]);
     const [lastUpdate, setLastUpdate] = useState(null);
     const [pdfLoading, setPdfLoading] = useState(false);
@@ -120,15 +120,16 @@ const AdminDashboard = () => {
     }, [dept]);
 
     const fetchAll = useCallback(async () => {
+        if (!user) return; // Wait for auth to settle
         setLoading(true);
         try {
             const params = buildParams();
             const [sum, fac, dist, trend, deptData] = await Promise.all([
-                api.get('/analytics/summary', { params }),
-                api.get('/analytics/by-faculty', { params }),
-                api.get('/analytics/distribution', { params }),
-                api.get('/analytics/trend', { params }),
-                api.get('/analytics/by-department'),
+                api.get('/analytics/summary', { params }).catch(e => { console.error('Summary fetch error:', e); return { data: { data: null } }; }),
+                api.get('/analytics/by-faculty', { params }).catch(e => { console.error('Faculty fetch error:', e); return { data: { data: [] } }; }),
+                api.get('/analytics/distribution', { params }).catch(e => { console.error('Dist fetch error:', e); return { data: { data: [] } }; }),
+                api.get('/analytics/trend', { params }).catch(e => { console.error('Trend fetch error:', e); return { data: { data: [] } }; }),
+                api.get('/analytics/by-department').catch(e => { console.error('Dept analytics fetch error:', e); return { data: { data: [] } }; }),
             ]);
             setData({
                 summary: sum.data.data,
@@ -143,7 +144,7 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [buildParams]);
+    }, [buildParams, user]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -377,7 +378,7 @@ const AdminDashboard = () => {
                 <KpiCard
                     icon={<FiLayers size={20} />}
                     label="Active Depts"
-                    value={`${summary?.activeDepartments ?? 0} / ${summary?.totalDepartments ?? 8}`}
+                    value={`${summary?.activeDepartments ?? 0} / ${deptList.length || 8}`}
                     sub="Current participation" color="var(--clr-primary)"
                 />
                 <KpiCard

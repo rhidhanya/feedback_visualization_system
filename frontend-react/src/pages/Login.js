@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {
-    FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiAlertTriangle
-} from 'react-icons/fi';
-import { CampusLensIcon } from '../components/CollegePulseLogo';
+import { FiEye, FiEyeOff, FiLoader, FiAlertTriangle, FiActivity } from 'react-icons/fi';
+import { CampusLensLogo } from '../components/CollegePulseLogo';
 import { useAuth } from '../context/AuthContext';
+import './EcoAuth.css'; // New styles
 
 const Login = () => {
-    const { login, loading } = useAuth(); // The unified /auth/login endpoint
+    const { login, loading } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
@@ -30,111 +29,90 @@ const Login = () => {
             return;
         }
 
-        // Redirect dynamically based on the logged-in role
-        switch (result.role) {
-            case 'student':
-                navigate('/student/home', { replace: true });
-                break;
-            case 'hod':
-                navigate('/hod/dashboard', { replace: true });
-                break;
-            case 'domain_head':
-                navigate('/domain-head/dashboard', { replace: true });
-                break;
-            case 'principal':
-            case 'dean':
-                navigate('/principal/dashboard', { replace: true });
-                break;
-            case 'admin':
-                navigate('/admin/dashboard', { replace: true });
-                break;
-            case 'faculty':
-                setError('Access Denied: The Faculty Dashboard has been deprecated.');
-                break;
-            default:
-                navigate('/unauthorized', { replace: true });
-        }
+        if (result.role === 'admin') navigate('/admin/domain-overview', { replace: true });
+        else if (result.role === 'student') navigate('/student/home', { replace: true });
+        else if (result.role === 'hod') navigate('/hod/dashboard', { replace: true });
+        else if (result.role === 'domain_head') navigate('/domain-head/dashboard', { replace: true });
+        else if (['principal', 'dean'].includes(result.role)) navigate('/principal/dashboard', { replace: true });
+        else if (result.role === 'faculty') setError('Access Denied: The Faculty Dashboard has been deprecated.');
+        else navigate('/unauthorized', { replace: true });
     };
 
     return (
-        <div className="login-page-premium">
-            <div className="login-card-premium">
-                {/* Header */}
-                <div className="login-header-new">
-                    <div className="login-logo-wrap">
-                        <CampusLensIcon size={48} color="var(--clr-primary)" />
-                    </div>
-                    <h1 className="login-app-name">CampusLens</h1>
-                    <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
-                        Unified Login Portal
-                    </p>
-                </div>
-
-                <form className="login-form-premium" onSubmit={handleSubmit} id="unified-login-form">
-                    {error && (
-                        <div className="login-error-premium" id="login-error">
-                            <FiAlertTriangle size={14} style={{ flexShrink: 0 }} />
-                            {error}
+        <div className="eco-auth-page">
+            <div className="eco-login-center">
+                <div className="eco-login-card">
+                    
+                    <div className="eco-login-header">
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                            <CampusLensLogo dark={true} iconSize={42} />
                         </div>
-                    )}
+                        <p className="eco-form-subtitle">Sign in to your account</p>
+                    </div>
 
-                    <div>
-                        <label className="login-label-premium" htmlFor="unified-email-input">Official Email Address</label>
-                        <div className="input-icon-wrap">
-                            <span className="input-icon"><FiMail size={15} /></span>
+                    <form onSubmit={handleSubmit}>
+                        {error && (
+                            <div className="eco-error">
+                                <FiAlertTriangle size={16} style={{ flexShrink: 0 }} />
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="eco-input-group">
+                            <label>Email</label>
                             <input
-                                id="unified-email-input"
+                                className="eco-input"
                                 value={form.email}
                                 onChange={handleChange('email')}
-                                placeholder="Enter your email"
+                                placeholder="name@example.com"
                                 required
                                 type="text"
                             />
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="login-label-premium" htmlFor="unified-password-input">Password</label>
-                        <div className="input-icon-wrap">
-                            <span className="input-icon"><FiLock size={15} /></span>
-                            <input
-                                id="unified-password-input"
-                                type={showPass ? 'text' : 'password'}
-                                value={form.password}
-                                onChange={handleChange('password')}
-                                placeholder="Enter your password"
-                                required
-                                className="has-right-icon"
-                            />
-                            <button
-                                type="button"
-                                className="input-icon-right"
-                                onClick={() => setShowPass(v => !v)}
-                            >
-                                {showPass ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                            </button>
+                        <div className="eco-input-group">
+                            <label>Password</label>
+                            <div className="eco-input-wrapper">
+                                <input
+                                    type={showPass ? 'text' : 'password'}
+                                    className="eco-input"
+                                    value={form.password}
+                                    onChange={handleChange('password')}
+                                    placeholder="••••••••"
+                                    required
+                                    style={{ paddingRight: '2.5rem' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPass(!showPass)}
+                                    style={{
+                                        position: 'absolute', right: '1rem', background: 'none', border: 'none',
+                                        color: '#64748b', cursor: 'pointer', display: 'flex'
+                                    }}
+                                >
+                                    {showPass ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="eco-btn-primary"
+                            disabled={loading}
+                        >
+                            {loading ? <FiLoader size={18} className="spin" /> : 'Sign In'}
+                        </button>
+                    </form>
+
+                    <div className="eco-form-footer">
+                        <div style={{ marginBottom: '1rem' }}>
+                            <Link to="#" className="eco-link" style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Forgot password?</Link>
+                        </div>
+                        <div>
+                            Don't have an account? <Link to="/student-register" className="eco-link" style={{ color: '#3b82f6' }}>Register</Link>
                         </div>
                     </div>
 
-                    <button
-                        id="unified-login-btn"
-                        type="submit"
-                        className="btn-login-gradient"
-                        disabled={loading}
-                        style={{ marginTop: '1rem' }}
-                    >
-                        {loading ? <FiLoader size={16} className="spin" /> : 'Log In Securely'}
-                    </button>
-                </form>
-
-                <div className="login-footer-links" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-                        Securely connecting Students, HODs, Incharges, and Principal.
-                    </div>
-                    {/* Small explicit link to direct strictly to student register if needed */}
-                    <Link to="/student-register" style={{ fontSize: '0.85rem', color: 'var(--clr-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                        New Student? Register Here
-                    </Link>
                 </div>
             </div>
         </div>

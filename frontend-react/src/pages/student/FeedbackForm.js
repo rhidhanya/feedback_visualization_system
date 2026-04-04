@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { FiCheckCircle, FiBook, FiUser, FiAlertTriangle, FiLoader, FiCheck } from 'react-icons/fi';
+import { FiCheckCircle, FiUser, FiAlertTriangle, FiLoader, FiCheck, FiArrowLeft } from 'react-icons/fi';
 import api from '../../api/axios';
+import StudentLayout from '../../components/StudentLayout';
+import './FeedbackForm.css';
 
 const RATING_FIELDS = [
     { key: 'teachingQuality', label: 'Teaching Quality', desc: 'Clarity of explanations and delivery' },
@@ -11,28 +13,12 @@ const RATING_FIELDS = [
     { key: 'doubtClarification', label: 'Doubt Clarification', desc: 'Effectiveness in resolving doubts' },
 ];
 
-const StarRating = ({ value, onChange, fieldKey }) => (
-    <div className="stars" id={`stars-${fieldKey}`}>
-        {[1, 2, 3, 4, 5].map(star => (
-            <span
-                key={star}
-                id={`star-${fieldKey}-${star}`}
-                className={`star${value >= star ? ' active' : ''}`}
-                onClick={() => onChange(star)}
-                title={`${star} star${star > 1 ? 's' : ''}`}
-            >
-                ★
-            </span>
-        ))}
-    </div>
-);
-
 const FeedbackForm = () => {
     const { subjectId } = useParams();
     const { state } = useLocation();
     const navigate = useNavigate();
 
-    const subject = state?.subject;
+    const [subject, setSubject] = useState(state?.subject || null);
     const existingFeedback = state?.existingFeedback;
 
     const [ratings, setRatings] = useState(
@@ -42,27 +28,39 @@ const FeedbackForm = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(!subject);
 
-    const avgPreview = (() => {
-        const vals = Object.values(ratings).filter(v => v > 0);
-        if (vals.length === 0) return null;
-        return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2);
-    })();
+    useEffect(() => {
+        if (!subject && subjectId) {
+            const fetchSubject = async () => {
+                try {
+                    const res = await api.get(`/subjects/${subjectId}`);
+                    if (res.data.success) {
+                        setSubject(res.data.data);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch subject:", err);
+                    setError("Could not load subject details.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchSubject();
+        }
+    }, [subjectId, subject]);
 
     const allFilled = Object.values(ratings).every(v => v > 0);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!allFilled) { setError('Please rate all 5 categories before submitting.'); return; }
+        if (!allFilled) { setError('Please rate all categories before submitting.'); return; }
         setSubmitting(true);
         setError('');
         try {
             if (existingFeedback) {
                 await api.put(`/feedback/${existingFeedback._id}`, { ratings, comments });
             } else {
-                const subIdToSubmit = subjectId || subject?._id || subject?.id;
-                if (!subIdToSubmit) throw new Error('Subject ID missing');
-                await api.post('/feedback', { subjectId: subIdToSubmit, ratings, comments });
+                await api.post('/feedback', { subjectId, ratings, comments });
             }
             setSuccess(true);
             setTimeout(() => navigate('/student/home'), 2500);
@@ -73,132 +71,106 @@ const FeedbackForm = () => {
         }
     };
 
+    if (loading) return (
+        <StudentLayout>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
+                <div className="spinner" />
+            </div>
+        </StudentLayout>
+    );
+
     if (success) {
         return (
-            <div className="student-layout">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: '100vh' }}>
-                    <div style={{ textAlign: 'center', maxWidth: 400, padding: '2rem' }}>
-                        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
-                            <FiCheckCircle size={56} style={{ color: 'var(--clr-accent)' }} />
-                        </div>
-                        <h2>Feedback Submitted!</h2>
-                        <p>Thank you for your feedback. Redirecting to home...</p>
-                        <div className="spinner" style={{ margin: '1.5rem auto 0' }} />
+            <StudentLayout>
+                <div className="success-overlay">
+                    <div className="success-icon">
+                        <FiCheckCircle size={48} />
                     </div>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Feedback Submitted!</h2>
+                    <p style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '1rem' }}>
+                        Thank you for your valuable feedback.<br />Redirecting you back home...
+                    </p>
+                    <div className="spinner" style={{ margin: '2rem auto 0' }} />
                 </div>
-            </div>
+            </StudentLayout>
         );
     }
 
     return (
-        <div className="student-layout">
-            <header className="student-topbar">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <button
-                        id="back-btn"
-                        className="btn btn-ghost"
-                        onClick={() => navigate('/student/home')}
-                        style={{ padding: '0.4rem 0.75rem' }}
-                    >
-                        ← Back
-                    </button>
-                    <div>
-                        <div style={{ fontWeight: 700 }}>{existingFeedback ? 'Edit Feedback' : 'Submit Feedback'}</div>
-                        {subject && <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-3)' }}>{subject.subjectCode} · {subject.name}</div>}
+        <StudentLayout>
+            <div className="feedback-page">
+                <div className="feedback-header-card">
+                    <div className="subject-info">
+                        <h1>{subject?.name}</h1>
+                        <div className="faculty-badge">
+                            <FiUser size={18} style={{ color: 'var(--clr-primary)' }} />
+                            <span>{subject?.facultyName || subject?.faculty?.name}</span>
+                            <span style={{ color: 'var(--clr-border-2)' }}>•</span>
+                            <span style={{ color: 'var(--clr-text-3)' }}>{subject?.subjectCode}</span>
+                        </div>
                     </div>
                 </div>
-            </header>
 
-            <div className="student-content">
-                {subject && (
-                    <div className="card" style={{ marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, background: 'var(--clr-primary-lt)', borderRadius: 8 }}>
-                                <FiBook size={20} style={{ color: 'var(--clr-primary)' }} />
-                            </div>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>{subject.name}</div>
-                                <div style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                    {subject.subjectCode}
-                                    <span style={{ color: 'var(--clr-border-2)' }}>·</span>
-                                    <FiUser size={12} style={{ verticalAlign: 'middle' }} />
-                                    {subject.facultyName}
+                <div className="rating-container">
+                    <form onSubmit={handleSubmit}>
+                        <div className="rating-group">
+                            {RATING_FIELDS.map(field => (
+                                <div key={field.key} className="rating-item">
+                                    <div className="rating-label-box">
+                                        <div className="rating-title">{field.label}</div>
+                                        <div className="rating-desc">{field.desc}</div>
+                                    </div>
+                                    <div className="star-input">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <span 
+                                                key={star}
+                                                className={`star-btn ${ratings[field.key] >= star ? 'active' : ''}`}
+                                                onClick={() => setRatings(prev => ({ ...prev, [field.key]: star }))}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+
+                        <div className="comment-section">
+                            <label className="comment-label">Additional Comments (Optional)</label>
+                            <textarea 
+                                className="comment-textarea"
+                                placeholder="Tell us more about your experience with this faculty..."
+                                value={comments}
+                                onChange={(e) => setComments(e.target.value)}
+                                maxLength={1000}
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="alert alert-error" style={{ marginTop: '1.5rem', background: 'var(--clr-danger-lt)', color: 'var(--clr-danger)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--clr-danger)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 600 }}>
+                                <FiAlertTriangle /> {error}
                             </div>
+                        )}
+
+                        <div className="submit-section">
+                            <button 
+                                type="submit" 
+                                className="btn-submit-feedback"
+                                disabled={submitting || !allFilled}
+                            >
+                                {submitting ? <FiLoader className="spinner-inline" /> : <FiCheck size={20} />}
+                                {existingFeedback ? 'Update Feedback' : 'Submit Feedback'}
+                            </button>
+                            {!allFilled && (
+                                <p style={{ fontSize: '0.85rem', color: 'var(--clr-text-3)', fontWeight: 600, marginTop: '0.5rem' }}>
+                                    Please provide all ratings to continue
+                                </p>
+                            )}
                         </div>
-                    </div>
-                )}
-
-                <form className="card feedback-form" id="feedback-form" onSubmit={handleSubmit}>
-                    <h3 style={{ marginBottom: '1.5rem' }}>Rate Your Faculty</h3>
-
-                    {error && (
-                        <div className="alert alert-error" id="form-error" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <FiAlertTriangle size={14} style={{ flexShrink: 0 }} />{error}
-                        </div>
-                    )}
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        {RATING_FIELDS.map(field => (
-                            <div key={field.key} className="rating-row">
-                                <div className="rating-label">
-                                    {field.label}
-                                    <span>{field.desc}</span>
-                                </div>
-                                <StarRating
-                                    fieldKey={field.key}
-                                    value={ratings[field.key]}
-                                    onChange={val => setRatings(p => ({ ...p, [field.key]: val }))}
-                                />
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Live preview */}
-                    {avgPreview && (
-                        <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Preview rating:</span>
-                            <span className={`rating-chip ${Number(avgPreview) >= 4 ? 'rating-high' : Number(avgPreview) >= 2.5 ? 'rating-mid' : 'rating-low'}`}>
-                                {avgPreview}
-                            </span>
-                        </div>
-                    )}
-
-                    <div className="input-group" style={{ marginBottom: '1.5rem' }}>
-                        <label>Comments (Optional)</label>
-                        <textarea
-                            id="comments-input"
-                            value={comments}
-                            onChange={e => setComments(e.target.value)}
-                            placeholder="Share your experience with this faculty (max 1000 characters)…"
-                            rows={4}
-                            maxLength={1000}
-                        />
-                        <span style={{ fontSize: '0.75rem', color: 'var(--clr-text-3)', marginTop: '0.25rem' }}>
-                            {comments.length}/1000
-                        </span>
-                    </div>
-
-                    <button
-                        id="submit-feedback-btn"
-                        type="submit"
-                        className="btn btn-primary btn-full"
-                        disabled={submitting || !allFilled}
-                    >
-                        {submitting
-                            ? <><FiLoader size={14} style={{ marginRight: '0.4rem' }} />Submitting…</>
-                            : <><FiCheck size={14} style={{ marginRight: '0.4rem' }} />{existingFeedback ? 'Update Feedback' : 'Submit Feedback'}</>
-                        }
-                    </button>
-
-                    {!allFilled && (
-                        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--clr-text-3)', marginTop: '0.75rem' }}>
-                            Please rate all 5 categories to enable submission.
-                        </p>
-                    )}
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
+        </StudentLayout>
     );
 };
 

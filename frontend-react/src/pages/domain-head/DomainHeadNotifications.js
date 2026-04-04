@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FiInbox } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import DomainHeadLayout from '../../components/DomainHeadLayout';
 import api from '../../api/axios';
 
 const DomainHeadNotifications = () => {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -23,7 +25,9 @@ const DomainHeadNotifications = () => {
 
     return (
         <DomainHeadLayout title="Notifications">
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Notifications ({notifications.filter(n => !n.isRead).length} unread)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Notifications ({notifications.filter(n => !n.isRead).length} unread)</h2>
+            </div>
             <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>
                 {notifications.length === 0 ? (
                     <div className="empty-state" style={{ padding: '3rem' }}><FiInbox size={28} /><span>No notifications</span></div>

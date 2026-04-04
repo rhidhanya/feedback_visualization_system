@@ -123,40 +123,47 @@ exports.getDomainAnalytics = async (req, res) => {
             return res.status(403).json({ success: false, message: "You can only view analytics for your assigned domain" });
         }
 
-        const [avgResult, countResult, negativeCount, semesterTrend, questionStats] = await Promise.all([
+        const [analyticsResult, head] = await Promise.all([
             DomainFeedback.aggregate([
                 { $match: { domainSlug: slug } },
-                { $group: { _id: null, avgRating: { $avg: "$overallRating" }, total: { $sum: 1 } } },
-            ]),
-            DomainFeedback.countDocuments({ domainSlug: slug }),
-            DomainFeedback.countDocuments({ domainSlug: slug, overallRating: { $lte: 2 } }),
-            DomainFeedback.aggregate([
-                { $match: { domainSlug: slug } },
-                { $group: { _id: "$semester", avgRating: { $avg: "$overallRating" }, count: { $sum: 1 } } },
-                { $sort: { _id: 1 } },
-            ]),
-            DomainFeedback.aggregate([
-                { $match: { domainSlug: slug } },
-                { $unwind: "$answers" },
-                { $match: { "answers.rating": { $exists: true, $ne: null } } },
-                { $group: { _id: "$answers.questionText", avgRating: { $avg: "$answers.rating" }, count: { $sum: 1 } } },
-                { $sort: { avgRating: -1 } },
+                {
+                    $facet: {
+                        summary: [
+                            { $group: { _id: null, avgRating: { $avg: "$overallRating" }, totalFeedback: { $sum: 1 } } }
+                        ],
+                        negative: [
+                            { $match: { overallRating: { $lte: 2 } } },
+                            { $count: "count" }
+                        ],
+                        semesterTrend: [
+                            { $group: { _id: "$semester", avgRating: { $avg: "$overallRating" }, count: { $sum: 1 } } },
+                            { $sort: { _id: 1 } }
+                        ],
+                        questionStats: [
+                            { $unwind: "$answers" },
+                            { $match: { "answers.rating": { $exists: true, $ne: null } } },
+                            { $group: { _id: "$answers.questionText", avgRating: { $avg: "$answers.rating" }, count: { $sum: 1 } } },
+                            { $sort: { avgRating: -1 } }
+                        ]
+                    }
+                }
             ]),
             User.findOne({ role: "domain_head", assignedDomain: slug }).select("name contact"),
         ]);
 
-        const avg = avgResult[0]?.avgRating || 0;
-        const head = headResult;
+        const result = analyticsResult[0];
+        const summary = result.summary[0] || { avgRating: 0, totalFeedback: 0 };
+        const negativeCount = result.negative[0]?.count || 0;
 
         res.json({
             success: true,
             data: {
                 domainSlug: slug,
-                avgRating: Math.round(avg * 100) / 100,
-                totalFeedback: countResult,
+                avgRating: Math.round(summary.avgRating * 100) / 100,
+                totalFeedback: summary.totalFeedback,
                 negativeFeedback: negativeCount,
-                semesterTrend: semesterTrend.map(s => ({ semester: s._id, avgRating: Math.round(s.avgRating * 100) / 100, count: s.count })),
-                questionStats: questionStats.map(q => ({ question: q._id, avgRating: Math.round(q.avgRating * 100) / 100, count: q.count })),
+                semesterTrend: result.semesterTrend.map(s => ({ semester: s._id, avgRating: Math.round(s.avgRating * 100) / 100, count: s.count })),
+                questionStats: result.questionStats.map(q => ({ question: q._id, avgRating: Math.round(q.avgRating * 100) / 100, count: q.count })),
                 domainHead: head ? { name: head.name, contact: head.contact } : null,
             },
         });

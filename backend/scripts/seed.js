@@ -105,7 +105,7 @@ const seed = async () => {
     const admin = await User.create({
         name: "Admin User",
         email: "admin@bitsathy.in",
-        password: "admin123", // Will be hashed by pre-save hook
+        password: "password123", // Will be hashed by pre-save hook
         role: "admin",
     });
     console.log("✅ Admin seeded:", admin.email);
@@ -115,7 +115,7 @@ const seed = async () => {
         User.create({
             name: "Ananya Krishnan",
             email: "ananya.krishnan@bitsathy.in",
-            password: "student123",
+            password: "password123",
             role: "student",
             rollNumber: "CS2024001",
             department: cs._id,
@@ -124,7 +124,7 @@ const seed = async () => {
         User.create({
             name: "Rohan Desai",
             email: "rohan.desai@bitsathy.in",
-            password: "student123",
+            password: "password123",
             role: "student",
             rollNumber: "IT2024001",
             department: it._id,
@@ -133,7 +133,7 @@ const seed = async () => {
         User.create({
             name: "Sneha Patil",
             email: "sneha.patil@bitsathy.in",
-            password: "student123",
+            password: "password123",
             role: "student",
             rollNumber: "MECH2024001",
             department: mech._id,
@@ -142,20 +142,20 @@ const seed = async () => {
         User.create({
             name: "Prof. Suresh Nair",
             email: "suresh.nair@bitsathy.in",
-            password: "faculty123",
+            password: "password123",
             role: "faculty",
             department: cs._id,
         }),
         User.create({
             name: "Dr. Amitabh Sharma",
             email: "dean@bitsathy.in",
-            password: "admin123",
+            password: "password123",
             role: "dean",
         }),
         User.create({
             name: "Dr. Rajeshwar Rao",
             email: "principal@bitsathy.in",
-            password: "admin123",
+            password: "password123",
             role: "principal",
         }),
     ]);
@@ -221,10 +221,10 @@ const seed = async () => {
     console.log("──────────────────────────────────────────");
     console.log("🎉 Seed complete!");
     console.log("\n📋 Login Credentials:");
-    console.log("   Admin:   admin@bitsathy.in     / admin123");
-    console.log("   Student: ananya@student.edu    / student123  (CS Sem 3)");
-    console.log("   Student: rohan@student.edu     / student123  (IT Sem 3)");
-    console.log("   Student: sneha@student.edu     / student123  (MECH Sem 3)");
+    console.log("   Admin:   admin@bitsathy.in     / password123");
+    console.log("   Student: ananya@student.edu    / password123  (CS Sem 3)");
+    console.log("   Student: rohan@student.edu     / password123  (IT Sem 3)");
+    console.log("   Student: sneha@student.edu     / password123  (MECH Sem 3)");
     console.log("──────────────────────────────────────────\n");
 
     await mongoose.disconnect();

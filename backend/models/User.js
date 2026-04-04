@@ -110,8 +110,9 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 // ─── Indexes ──────────────────────────────────────────────────────────────
-userSchema.index({ role: 1 });
-userSchema.index({ department: 1 });
+userSchema.index({ role: 1, department: 1, isActive: 1 });
+userSchema.index({ semester: 1 });
+userSchema.index({ name: 'text', email: 'text', rollNumber: 'text' }); // Full-text search for management pages
 // Note: rollNumber index is defined via sparse:true in the schema field above
 
 module.exports = mongoose.model("User", userSchema);

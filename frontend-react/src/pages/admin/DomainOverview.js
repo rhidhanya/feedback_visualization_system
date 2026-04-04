@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
+} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { io } from 'socket.io-client';
 import { FiGlobe, FiStar, FiAlertTriangle, FiMessageSquare, FiInbox } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 
-const CHART_COLORS = ['#1E4DB7', '#3B82F6', '#60A5FA', '#94A3B8']; // Blue shades
+const CHART_COLORS = ['#1E4DB7', '#2563EB', '#1D4ED8', '#1E3A8A']; // Darker Blue shades for high contrast
+
+ChartJS.register(
+    CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
+);
 
 const DomainOverview = () => {
     const [stats, setStats] = useState([]);
@@ -62,30 +69,27 @@ const DomainOverview = () => {
 
     return (
         <AdminLayout title="Domain Overview">
+            <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', margin: 0 }}>Domain Overview</h2>
+            </div>
             <div className="admin-kpi-grid">
                 <div className="admin-kpi-card">
-                    <div className="icon-box"><FiGlobe size={22} /></div>
+                    <div className="icon-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiGlobe size={22} /></div>
                     <div className="info">
                         <span className="label">Total Domains</span>
                         <span className="value">{domains.length}</span>
                     </div>
                 </div>
+
                 <div className="admin-kpi-card">
-                    <div className="icon-box"><FiMessageSquare size={22} /></div>
-                    <div className="info">
-                        <span className="label">Total Feedback</span>
-                        <span className="value">{totalFeedback}</span>
-                    </div>
-                </div>
-                <div className="admin-kpi-card">
-                    <div className="icon-box"><FiAlertTriangle size={22} /></div>
+                    <div className="icon-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiAlertTriangle size={22} /></div>
                     <div className="info">
                         <span className="label">Negative Feedback</span>
                         <span className="value">{totalNeg}</span>
                     </div>
                 </div>
                 <div className="admin-kpi-card">
-                    <div className="icon-box"><FiStar size={22} /></div>
+                    <div className="icon-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiStar size={22} /></div>
                     <div className="info">
                         <span className="label">Active Domains</span>
                         <span className="value">{stats.length}</span>
@@ -160,7 +164,7 @@ const DomainOverview = () => {
                         <div key={d._id} className="card-premium domain-card-item" style={{ padding: '1.5rem', cursor: 'pointer' }} onClick={() => viewDetail(d.slug)}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                 <h4 style={{ color: color, fontSize: '1.1rem', margin: 0 }}>{d.name}</h4>
-                                <div className="icon-box-sm" style={{ background: `${color}15`, color: color }}>
+                                <div className="icon-box-sm" style={{ background: `${color}15`, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <FiGlobe size={16} />
                                 </div>
                             </div>
@@ -215,21 +219,11 @@ const DomainOverview = () => {
     );
 };
 
-const KPI = ({ icon, label, value, color }) => (
-    <div className="card-premium" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.5rem' }}>
-        <div className="icon-box" style={{ background: `${color}15`, color: color }}>
-            {icon}
-        </div>
-        <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{label}</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--clr-text)' }}>{value}</div>
-        </div>
-    </div>
-);
+
 
 const Empty = () => (
     <div className="empty-state" style={{ padding: '2rem 1rem' }}>
-        <div className="icon-box" style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', marginBottom: '1rem', borderRadius: '50%' }}>
+        <div className="icon-box" style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', marginBottom: '1rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <FiInbox size={20} />
         </div>
         <span style={{ fontWeight: 600, color: 'var(--clr-text-2)', fontSize: '0.85rem' }}>No data available</span>

@@ -34,7 +34,7 @@ async function seedHods() {
             await User.create({
                 name: data.name,
                 email: data.email.toLowerCase(),
-                password: "password",
+                password: "password123",
                 role: "hod",
                 department: dept._id,
                 hodId: data.hodId,

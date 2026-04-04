@@ -3,7 +3,7 @@ import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import {
     FiPlus, FiEdit2, FiTrash2, FiUser, FiMail,
-    FiSearch, FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiUsers, FiCheckCircle, FiShield
+    FiSearch, FiX, FiAlertCircle, FiRefreshCw, FiUsers, FiCheckCircle, FiShield
 } from 'react-icons/fi';
 
 const HodManagement = () => {
@@ -158,7 +158,6 @@ const HodManagement = () => {
             <div className="page-header" style={{ marginBottom: '1.5rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>HOD Management</h2>
-                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Core department leadership & authorization controls</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button className="btn btn-ghost" onClick={fetchHods}>
@@ -170,7 +169,7 @@ const HodManagement = () => {
                 </div>
             </div>
 
-            <div className="admin-kpi-grid" style={{ minHeight: '120px' }}>
+            <div className="admin-kpi-grid" style={{ minHeight: '95px' }}>
                 <div className="admin-kpi-card">
                     <div className="icon-box"><FiUsers size={22} /></div>
                     <div className="info">
@@ -192,13 +191,7 @@ const HodManagement = () => {
                         <span className="value">{hods.filter(h => h.isActive).length}</span>
                     </div>
                 </div>
-                <div className="admin-kpi-card">
-                    <div className="icon-box"><FiShield size={22} /></div>
-                    <div className="info">
-                        <span className="label">Admin Status</span>
-                        <span className="value">Secure</span>
-                    </div>
-                </div>
+
             </div>
 
             {toast && (
@@ -207,7 +200,7 @@ const HodManagement = () => {
                 </div>
             )}
 
-            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
@@ -313,10 +306,41 @@ const HodManagement = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>← Previous</button>
-                            <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 500 }}>Page {currentPage} of {totalPages}</span>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next →</button>
+                        <div className="pagination">
+                            <button 
+                                className="pagination-btn pagination-nav-btn" 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                disabled={currentPage === 1}
+                            >
+                                ← Previous
+                            </button>
+                            
+                            {[...Array(totalPages)].map((_, i) => {
+                                const pageNum = i + 1;
+                                if (totalPages > 7) {
+                                    if (pageNum !== 1 && pageNum !== totalPages && (pageNum < currentPage - 1 || pageNum > currentPage + 1)) {
+                                        if (pageNum === currentPage - 2 || pageNum === currentPage + 2) return <span key={pageNum} style={{ color: 'var(--clr-text-3)' }}>...</span>;
+                                        return null;
+                                    }
+                                }
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        className={`pagination-btn ${currentPage === pageNum ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button 
+                                className="pagination-btn pagination-nav-btn" 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                disabled={currentPage === totalPages}
+                            >
+                                Next →
+                            </button>
                         </div>
                     )}
                 </>

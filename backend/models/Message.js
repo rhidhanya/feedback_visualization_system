@@ -5,38 +5,40 @@ const messageSchema = new mongoose.Schema(
         sender: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
+            required: [true, "Sender is required"],
         },
-        senderRole: {
-            type: String, // 'dean', 'principal', 'admin', 'domain_head'
-            required: true,
-        },
-        receiverRoles: [{
-            type: String, // roles that can view this message
-        }],
-        receiver: {
+        recipient: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-        },
-        domainContext: {
-            type: String, // optional, ties message to a specific domain e.g. 'hostel'
-            trim: true,
+            required: [true, "Recipient is required"],
         },
         subject: {
             type: String,
+            required: [true, "Subject is required"],
             trim: true,
+            maxlength: 200,
         },
-        text: {
+        body: {
             type: String,
-            required: true,
+            required: [true, "Message body is required"],
             trim: true,
+            maxlength: 2000,
         },
-        readBy: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        }]
+        isRead: {
+            type: Boolean,
+            default: false,
+        },
+        readAt: {
+            type: Date,
+        },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+    }
 );
+
+// Indexes for fast lookups
+messageSchema.index({ recipient: 1, createdAt: -1 });
+messageSchema.index({ sender: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Message", messageSchema);

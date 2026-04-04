@@ -53,7 +53,7 @@ export const CampusLensLogo = ({ iconSize = 34, hideText = false, dark = false }
  * CampusLensIcon — Square icon version
  * Used in login pages and compact brand spots
  */
-export const CampusLensIcon = ({ size = 34, color = "#0F172A" }) => {
+export const CampusLensIcon = ({ size = 34, color = "var(--clr-primary)" }) => {
     return (
         <div
             style={{

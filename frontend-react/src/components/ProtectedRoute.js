@@ -16,13 +16,7 @@ const ProtectedRoute = ({ children, role }) => {
 
     if (!token || !user) {
         // Find the appropriate login path based on the role this route requires
-        const requiredRoles = Array.isArray(role) ? role : role ? [role] : [];
         let loginPath = '/login';
-        
-        if (requiredRoles.includes('admin')) loginPath = '/admin/login';
-        else if (requiredRoles.includes('principal') || requiredRoles.includes('dean')) loginPath = '/login';
-        else if (requiredRoles.includes('faculty') || requiredRoles.includes('hod')) loginPath = '/login';
-        else if (requiredRoles.includes('domain_head')) loginPath = '/login';
         
         return <Navigate to={loginPath} state={{ from: location }} replace />;
     }
@@ -31,8 +25,24 @@ const ProtectedRoute = ({ children, role }) => {
     const allowedRoles = Array.isArray(role) ? role : role ? [role] : [];
 
     // STRICT ROLE CHECK: User must have the role required by this specific route
-    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/unauthorized" replace />;
+    // If the user's role is missing but they are still authenticated, we should attempt to gracefully fallback
+    // Or if role simply doesn't match, we block
+    const userRole = typeof user?.role === 'string' ? user.role.toLowerCase() : user?.role;
+    const normalizedRoles = allowedRoles.map(r => typeof r === 'string' ? r.toLowerCase() : r);
+    
+    if (normalizedRoles.length > 0 && userRole) {
+        // Support role being an array (in cases where they might have multiple roles somehow)
+        const hasRole = Array.isArray(userRole) 
+            ? userRole.some(r => normalizedRoles.includes(r.toLowerCase()))
+            : normalizedRoles.includes(userRole);
+            
+        if (!hasRole) {
+            console.log(`[ProtectedRoute] Unauthorized! normalizedRoles:`, normalizedRoles, `userRole:`, userRole);
+            return <Navigate to="/unauthorized" replace />;
+        }
+    } else if (normalizedRoles.length > 0 && !userRole) {
+        // If they have somehow lost their role but are authenticated, trigger a re-auth instead of unauthorized
+        return <Navigate to="/login" replace />;
     }
 
     return children;

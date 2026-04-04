@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FiUsers, FiUserPlus, FiEdit2, FiTrash2, FiX, FiBook, FiCheckCircle, FiShield, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
+import useDebounce from '../../utils/useDebounce';
 
 const StudentsPage = () => {
     const [users, setUsers] = useState([]);
@@ -24,6 +25,7 @@ const StudentsPage = () => {
     const showToast = (ok, text) => { setActionMsg({ ok, text }); setTimeout(() => setActionMsg(null), 3500); };
 
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 400);
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
     const handleSort = (key) => {
@@ -47,7 +49,7 @@ const StudentsPage = () => {
             if (filters.department) p.set('department', filters.department);
             if (filters.semester) p.set('semester', filters.semester);
             if (filters.isActive !== '') p.set('isActive', filters.isActive);
-            if (search) p.set('search', search);
+            if (debouncedSearch) p.set('search', debouncedSearch);
 
             const [userRes, deptRes] = await Promise.all([
                 api.get(`/users?${p}`),
@@ -58,7 +60,7 @@ const StudentsPage = () => {
             setDepartments(deptRes.data.data || []);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
-    }, [page, filters, search]);
+    }, [page, filters, debouncedSearch]);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
@@ -123,7 +125,7 @@ const StudentsPage = () => {
                 await api.put(`/users/${editing._id}`, payload);
                 showToast(true, 'Student updated successfully');
             } else {
-                await api.post('/users/student', payload); 
+                await api.post('/users/student', payload);
                 showToast(true, 'Student created successfully');
             }
             setModalOpen(false);
@@ -153,7 +155,7 @@ const StudentsPage = () => {
             <div className="page-header">
                 <div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>Student Management</h2>
-                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Core student directory & residency tracking</p>
+
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button className="btn btn-ghost" onClick={fetchUsers}><FiRefreshCw size={16} /></button>
@@ -185,13 +187,6 @@ const StudentsPage = () => {
                         <span className="value">{users.filter(u => u.isActive).length}</span>
                     </div>
                 </div>
-                <div className="admin-kpi-card">
-                    <div className="icon-box"><FiShield size={22} /></div>
-                    <div className="info">
-                        <span className="label">Data Integrity</span>
-                        <span className="value">High</span>
-                    </div>
-                </div>
             </div>
 
             {actionMsg && (
@@ -200,7 +195,7 @@ const StudentsPage = () => {
                 </div>
             )}
 
-            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)' }}>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
@@ -239,9 +234,9 @@ const StudentsPage = () => {
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Students</label>
                     <div style={{ position: 'relative' }}>
                         <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
-                        <input 
-                            type="text" 
-                            placeholder="Search by Name, Roll No..." 
+                        <input
+                            type="text"
+                            placeholder="Search by Name, Roll No..."
                             value={search}
                             onChange={e => { setSearch(e.target.value); setPage(1); }}
                             style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
@@ -289,13 +284,13 @@ const StudentsPage = () => {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                                <button 
-                                                    onClick={() => toggleStatus(u._id, u.name)} 
+                                                <button
+                                                    onClick={() => toggleStatus(u._id, u.name)}
                                                     className={u.isActive ? 'btn-deactivate' : 'btn-activate'}
                                                 >
                                                     {u.isActive ? 'Deactivate' : 'Activate'}
                                                 </button>
-                                                <button onClick={() => openEdit(u)} style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                                <button onClick={() => openEdit(u)} style={{ color: '#000000', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
                                                 <button onClick={() => setDeleteConfirm(u)} style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                             </div>
                                         </td>
@@ -306,10 +301,41 @@ const StudentsPage = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>← Previous</button>
-                            <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 500 }}>Page {page} of {totalPages}</span>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next →</button>
+                        <div className="pagination">
+                            <button
+                                className="pagination-btn pagination-nav-btn"
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                            >
+                                ← Previous
+                            </button>
+
+                            {[...Array(totalPages)].map((_, i) => {
+                                const pageNum = i + 1;
+                                if (totalPages > 7) {
+                                    if (pageNum !== 1 && pageNum !== totalPages && (pageNum < page - 1 || pageNum > page + 1)) {
+                                        if (pageNum === page - 2 || pageNum === page + 2) return <span key={pageNum} style={{ padding: '0 0.5rem', color: 'var(--clr-text-3)' }}>...</span>;
+                                        return null;
+                                    }
+                                }
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        className={`pagination-btn ${page === pageNum ? 'active' : ''}`}
+                                        onClick={() => setPage(pageNum)}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button
+                                className="pagination-btn pagination-nav-btn"
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                            >
+                                Next →
+                            </button>
                         </div>
                     )}
                 </>
@@ -323,20 +349,20 @@ const StudentsPage = () => {
                             <h3 style={{ margin: 0 }}>{editing ? 'Edit Student' : 'Add New Student'}</h3>
                             <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><FiX size={20} /></button>
                         </div>
-                        
+
                         {formError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{formError}</div>}
-                        
+
                         <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div className="input-group" style={{ gridColumn: 'span 2' }}>
                                 <label>Full Name</label>
                                 <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
                             </div>
-                            
+
                             <div className="input-group">
                                 <label>Email</label>
                                 <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
                             </div>
-                            
+
                             <div className="input-group">
                                 <label>Password {editing && <span style={{ fontSize: '0.75rem', fontWeight: 'normal' }}>(leave blank to keep)</span>}</label>
                                 <input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} {...(!editing ? { required: true } : {})} />

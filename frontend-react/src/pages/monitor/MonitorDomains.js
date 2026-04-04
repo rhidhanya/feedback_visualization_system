@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
+} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { FiInbox } from 'react-icons/fi';
 import MonitorLayout from '../../components/MonitorLayout';
 import api from '../../api/axios';
+
+ChartJS.register(
+    CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
+);
 
 const CHART_COLORS = ['#0ABAB5', '#006994', '#9BC4E2', '#8FE2E1'];
 

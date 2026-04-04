@@ -11,7 +11,16 @@ exports.getUsers = async (req, res) => {
         if (req.query.role) filter.role = req.query.role;
         if (req.query.department) filter.department = req.query.department;
         if (req.query.semester) filter.semester = Number(req.query.semester);
-        if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true";
+        if (req.query.isActive !== undefined && req.query.isActive !== '') filter.isActive = req.query.isActive === "true";
+
+        // Support search by name or email
+        if (req.query.search) {
+            filter.$or = [
+                { name: { $regex: req.query.search, $options: "i" } },
+                { email: { $regex: req.query.search, $options: "i" } },
+                { rollNumber: { $regex: req.query.search, $options: "i" } }
+            ];
+        }
 
         const page = Math.max(1, Number(req.query.page) || 1);
         const limit = Math.min(100, Number(req.query.limit) || 50);
@@ -381,21 +390,23 @@ exports.createStudent = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
 };
-// ─── GET /api/users/recipients  (Admin/Principal) ─────────────────────────
+// ─── GET /api/users/recipients  (Admin/Principal/HOD) ─────────────────────────
 exports.getRecipients = async (req, res) => {
     try {
-        const { role, department } = req.user;
+        const role = (req.user.role || "").toLowerCase();
         let filter = { isActive: true };
 
-        if (role === 'admin' || role === 'principal' || role === 'faculty') {
-            filter.role = { $in: ["hod", "domain_head", "principal"] };
-            // Optional: If faculty, maybe they shouldn't see all domain_heads? 
-            // The request says "allow the user to choose the specific department HOD" and "Keep Principal option".
-            if(role === 'faculty') filter.role = { $in: ["hod", "principal"] };
+        if (role === 'admin' || role === 'principal') {
+            filter.role = { $in: ["hod", "domain_head", "principal", "faculty"] };
+        } else if (role === 'faculty') {
+            filter.role = { $in: ["hod", "principal"] };
         } else if (role === 'hod') {
-            // HOD can message faculty in their department
+            // HOD can message faculty in their department — look up from DB since JWT has no department
+            const hodUser = await User.findById(req.user.userId || req.user.id).select("department");
             filter.role = "faculty";
-            filter.department = department;
+            if (hodUser?.department) {
+                filter.department = hodUser.department;
+            }
         } else {
             return res.status(403).json({ success: false, message: "Unauthorized to fetch recipients" });
         }

@@ -33,11 +33,11 @@ async function testLogins() {
     console.log('🔐 Testing PRINCIPAL Login...');
     const res = await axios.post(`${API_BASE}/auth/monitor-login`, {
       email: 'principal@bitsathy.in',
-      password: 'admin123'
+      password: 'principal123'
     });
     console.log('✅ PRINCIPAL LOGIN SUCCESS');
     console.log('   Email: principal@bitsathy.in');
-    console.log('   Password: admin123');
+    console.log('   Password: principal123');
     console.log('   Token:', res.data.token.substring(0, 50) + '...');
     console.log('   Role:', res.data.user.role);
     console.log('   Dashboard: /principal/dashboard\n');
@@ -53,11 +53,11 @@ async function testLogins() {
   try {
     console.log('🔐 Testing INCHARGE (Transport) Login...');
     const res = await axios.post(`${API_BASE}/auth/domain-head-login`, {
-      email: 'ravi.kumar@bitsathy.in',
+      email: 'transport@bitsathy.in',
       password: 'transport123'
     });
     console.log('✅ TRANSPORT INCHARGE LOGIN SUCCESS');
-    console.log('   Email: ravi.kumar@bitsathy.in');
+    console.log('   Email: transport@bitsathy.in');
     console.log('   Password: transport123');
     console.log('   Token:', res.data.token.substring(0, 50) + '...');
     console.log('   Role:', res.data.user.role);
@@ -73,9 +73,9 @@ async function testLogins() {
 
   // Test other Incharges
   const incharges = [
-    { email: 'sunita.sharma@bitsathy.in', password: 'mess123', domain: 'Mess' },
-    { email: 'anil.mehta@bitsathy.in', password: 'hostel123', domain: 'Hostel' },
-    { email: 'priya.das@bitsathy.in', password: 'sanitation123', domain: 'Sanitation' },
+    { email: 'mess@bitsathy.in', password: 'mess123', domain: 'Mess' },
+    { email: 'hostel@bitsathy.in', password: 'hostel123', domain: 'Hostel' },
+    { email: 'sanitation@bitsathy.in', password: 'sanitation123', domain: 'Sanitation' },
   ];
 
   for (const inc of incharges) {

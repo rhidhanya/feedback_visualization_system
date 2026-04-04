@@ -109,7 +109,7 @@ feedbackSchema.index(
 );
 
 // ─── Additional indexes for analytics queries ─────────────────────────────
-feedbackSchema.index({ departmentId: 1 });
+feedbackSchema.index({ departmentId: 1, semester: 1, academicYear: 1 });
 feedbackSchema.index({ semester: 1, academicYear: 1 });
 feedbackSchema.index({ overallRating: 1 });
 feedbackSchema.index({ subjectId: 1, overallRating: -1 });

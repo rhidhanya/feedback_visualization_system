@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api/axios';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import {
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
+} from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import { FiSun, FiMoon, FiFileText, FiStar, FiCheckCircle, FiTrendingUp } from 'react-icons/fi';
 import KPICard from './components/KPICard';
-import ActivityFeed from './components/ActivityFeed';
+import ActivitiesFeed from './components/ActivityFeed';
 import './App.css';
 
-const API = 'http://localhost:5000/api';
+ChartJS.register(
+    CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
+);
+
 const SOCKET_URL = 'http://localhost:5000';
 
 const Dashboard = () => {
@@ -26,10 +32,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchEntities = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { Authorization: `Bearer ${token}` };
-        const cRes = await axios.get(`${API}/courses`, { headers });
-        const iRes = await axios.get(`${API}/instructors`, { headers });
+        const cRes = await api.get('/courses');
+        const iRes = await api.get('/instructors');
         setCourses(cRes.data);
         setInstructors(iRes.data);
       } catch (err) {
@@ -41,10 +45,8 @@ const Dashboard = () => {
 
   const fetchData = async (queryStr = "") => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const summaryRes = await axios.get(`${API}/feedback/analytics/summary?${queryStr}`, { headers });
-      setSummaryStats(summaryRes.data);
+      const res = await api.get(`/feedback/analytics/summary?${queryStr}`);
+      setSummaryStats(res.data);
     } catch (err) {
       console.error("Fetch Data Error:", err);
     }

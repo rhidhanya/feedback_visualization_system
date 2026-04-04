@@ -471,8 +471,9 @@ exports.createHod = async (req, res) => {
         const populated = await User.findById(hod._id).populate("department", "name code").select("-password");
         res.status(201).json({ success: true, message: "HOD created", data: populated });
     } catch (err) {
+        console.error("Create HOD error:", err);
         if (err.code === 11000) return res.status(409).json({ success: false, message: "HOD ID or Email already exists" });
-        res.status(500).json({ success: false, message: "Server error", error: err.message });
+        res.status(500).json({ success: false, message: "Server error: " + err.message });
     }
 };
 
@@ -480,37 +481,80 @@ exports.createHod = async (req, res) => {
 exports.updateHod = async (req, res) => {
     try {
         const { name, email, department, hodId, contact, password, isActive } = req.body;
+        
+        // Find HOD first
         const hod = await User.findOne({ _id: req.params.id, role: "hod" });
-        if (!hod) return res.status(404).json({ success: false, message: "HOD not found" });
+        if (!hod) {
+            return res.status(404).json({ success: false, message: "HOD not found" });
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (email && email !== hod.email) {
+            const emailExists = await User.findOne({ email, _id: { $ne: req.params.id } });
+            if (emailExists) {
+                return res.status(400).json({ success: false, message: "Email is already in use by another user" });
+            }
+            hod.email = email;
+        }
+
+        // Check if hodId is being changed and if it's already taken
+        if (hodId && hodId !== hod.hodId) {
+            const idExists = await User.findOne({ role: "hod", hodId, _id: { $ne: req.params.id } });
+            if (idExists) {
+                return res.status(400).json({ success: false, message: "HOD ID is already assigned to someone else" });
+            }
+            hod.hodId = hodId;
+        }
 
         // If department is changing, check if new dept already has an HOD
-        if (department && department !== hod.department.toString()) {
-            const existingHod = await User.findOne({ role: "hod", department });
+        if (department && (!hod.department || department !== hod.department.toString())) {
+            const existingHod = await User.findOne({ role: "hod", department, _id: { $ne: req.params.id } });
             if (existingHod) {
                 return res.status(400).json({ success: false, message: "The target department already has an HOD assigned" });
             }
+            hod.department = department;
         }
 
-        if (name) hod.name = name;
-        if (email) hod.email = email;
-        if (department) hod.department = department;
-        if (hodId !== undefined) hod.hodId = hodId;
+        if (name) {
+            hod.name = name;
+            // Also update department model if it exists
+            const deptId = department || hod.department;
+            if (deptId) {
+                await Department.findByIdAndUpdate(deptId, { hodName: name });
+            }
+        }
+        
         if (contact !== undefined) hod.contact = contact;
         if (isActive !== undefined) hod.isActive = isActive;
-        if (password && password.length >= 6) hod.password = password;
+        if (password && password.length >= 6) {
+            hod.password = password;
+        } else if (password && password.length > 0 && password.length < 6) {
+             return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+        }
 
-        await hod.save();
-
-        // Update department model with HOD name
-        if (name || department) {
-            const currentDeptId = department || hod.department;
-            await Department.findByIdAndUpdate(currentDeptId, { hodName: name || hod.name });
+        try {
+            await hod.save();
+        } catch (saveErr) {
+            console.error("HOD Save Error:", saveErr);
+            if (saveErr.code === 11000) {
+                const field = Object.keys(saveErr.keyPattern)[0];
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Conflict: This ${field === 'email' ? 'email address' : field === 'hodId' ? 'HOD ID' : field} is already taken.` 
+                });
+            }
+            throw saveErr;
         }
 
         const populated = await User.findById(hod._id).populate("department", "name code").select("-password");
-        res.json({ success: true, message: "HOD updated", data: populated });
+        res.json({ success: true, message: "HOD details updated successfully", data: populated });
     } catch (err) {
-        res.status(500).json({ success: false, message: "Server error", error: err.message });
+        console.error("Update HOD Final Catch:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: "Request failed: " + (err.message || "Unknown error"),
+            detail: err.name
+        });
     }
 };
 

@@ -50,6 +50,12 @@ exports.submitFeedback = async (req, res) => {
                 departmentId: subject.department,
                 semester: subject.semester,
             });
+            // Real-time session notification
+            req.io.emit('session_notification', {
+                type: 'feedback',
+                message: `New feedback submitted for ${subject.subjectCode}`,
+                timestamp: new Date()
+            });
         }
 
         res.status(201).json({

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiUserPlus, FiEdit2, FiTrash2, FiX, FiInbox } from 'react-icons/fi';
+import { FiUserPlus, FiEdit2, FiTrash2, FiX, FiInbox, FiRefreshCw } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 
 const DOMAIN_OPTIONS = ['transport', 'mess', 'hostel', 'sanitation'];
 
 const DomainHeadManagement = () => {
+    const navigate = useNavigate();
     const [heads, setHeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
@@ -13,6 +15,8 @@ const DomainHeadManagement = () => {
     const [form, setForm] = useState({ name: '', email: '', password: '', assignedDomain: '' });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [toast, setToast] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -21,10 +25,11 @@ const DomainHeadManagement = () => {
     const fetchHeads = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await api.get('/users?role=domain_head');
+            const res = await api.get(`/users?role=domain_head&page=${page}&limit=10`);
             setHeads(res.data.data || []);
+            setTotalPages(res.data.totalPages || 1);
         } catch { showToast('error', 'Failed to load domain heads'); } finally { setLoading(false); }
-    }, []);
+    }, [page]);
 
     useEffect(() => { fetchHeads(); }, [fetchHeads]);
 
@@ -39,10 +44,10 @@ const DomainHeadManagement = () => {
 
         setFormLoading(true);
         try {
-            const payload = { 
-                name: form.name, 
-                email: form.email, 
-                role: 'domain_head', 
+            const payload = {
+                name: form.name,
+                email: form.email,
+                role: 'domain_head',
                 assignedDomain: form.assignedDomain,
             };
             if (form.password) payload.password = form.password;
@@ -79,14 +84,19 @@ const DomainHeadManagement = () => {
                 </div>
             )}
 
-            <div className="page-header">
+            <div className="page-header" style={{ marginBottom: '1.5rem' }}>
                 <div>
-                    <h2>Domain Heads</h2>
-                    <p>Manage domain head accounts and assignments</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>Domain Head Management</h2>
+
                 </div>
-                <button className="btn btn-primary" onClick={openAdd}>
-                    <FiUserPlus size={14} /> Add Domain Head
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn btn-ghost" onClick={fetchHeads} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FiRefreshCw size={14} />
+                    </button>
+                    <button className="btn btn-primary" onClick={openAdd} style={{ padding: '0.75rem 1.5rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FiUserPlus size={18} /> Add Domain Head
+                    </button>
+                </div>
             </div>
 
             <div className="table-wrap">
@@ -107,13 +117,13 @@ const DomainHeadManagement = () => {
                                 <td style={{ fontWeight: 700 }}>{h.name}</td>
                                 <td>{h.email}</td>
                                 <td>
-                                    <span style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--clr-hover-bg)', padding: '2px 10px', borderRadius: 12, fontSize: '0.78rem', fontWeight: 600 }}>
+                                    <span style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', padding: '4px 12px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
                                         {h.assignedDomain?.charAt(0).toUpperCase() + h.assignedDomain?.slice(1)}
                                     </span>
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
-                                        <button onClick={() => openEdit(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
+                                        <button onClick={() => openEdit(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--clr-text)', display: 'flex' }} title="Edit"><FiEdit2 size={16} /></button>
                                         <button onClick={() => setDeleteConfirm(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d4d', display: 'flex' }} title="Delete"><FiTrash2 size={16} /></button>
                                     </div>
                                 </td>
@@ -122,6 +132,45 @@ const DomainHeadManagement = () => {
                     </tbody>
                 </table>
             </div>
+
+            {totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        className="pagination-btn pagination-nav-btn"
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                    >
+                        ← Previous
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => {
+                        const pageNum = i + 1;
+                        if (totalPages > 7) {
+                            if (pageNum !== 1 && pageNum !== totalPages && (pageNum < page - 1 || pageNum > page + 1)) {
+                                if (pageNum === page - 2 || pageNum === page + 2) return <span key={pageNum} style={{ color: 'var(--clr-text-3)' }}>...</span>;
+                                return null;
+                            }
+                        }
+                        return (
+                            <button
+                                key={pageNum}
+                                className={`pagination-btn ${page === pageNum ? 'active' : ''}`}
+                                onClick={() => setPage(pageNum)}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
+
+                    <button
+                        className="pagination-btn pagination-nav-btn"
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
 
             {/* Modal */}
             {modalOpen && (

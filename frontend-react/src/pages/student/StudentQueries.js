@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSend, FiPlus, FiMessageCircle, FiCheckCircle, FiClock, FiAlertCircle } from 'react-icons/fi';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import StudentLayout from '../../components/StudentLayout';
 
 const StudentQueries = () => {
     // `user` removed due to unused variable warning from linter
@@ -13,6 +14,8 @@ const StudentQueries = () => {
     const [formData, setFormData] = useState({ domain: 'transport', subject: '', description: '' });
     const [submitting, setSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     const fetchQueries = async () => {
         try {
@@ -63,26 +66,19 @@ const StudentQueries = () => {
         { id: 'academic', label: 'Academic' }
     ];
 
+    // Pagination Logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentQueries = queries.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(queries.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     return (
-        <div className="student-layout">
-            <header className="student-topbar">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 34, height: 34, background: 'var(--clr-primary-lt)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiMessageCircle size={18} color="var(--clr-primary)" />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9375rem' }}>CampusLens</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-3)' }}>Queries & Support</div>
-                    </div>
-                </div>
-                <button
-                    className="btn btn-ghost"
-                    onClick={() => navigate('/student/home')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem' }}
-                >
-                    <FiArrowLeft size={14} /> Back to Home
-                </button>
-            </header>
+        <StudentLayout>
+            <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+                <h2>Queries & Support</h2>
+            </div>
 
             <div className="student-content">
                 <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
@@ -158,7 +154,7 @@ const StudentQueries = () => {
                                 <p>You haven't raised any queries yet.</p>
                             </div>
                         ) : (
-                            queries.map(q => (
+                            currentQueries.map(q => (
                                 <div key={q._id} style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                         <div>
@@ -198,10 +194,38 @@ const StudentQueries = () => {
                                 </div>
                             ))
                         )}
+                        
+                        {queries.length > itemsPerPage && (
+                            <div className="pagination">
+                                <button 
+                                    className="pagination-btn pagination-nav-btn"
+                                    disabled={currentPage === 1}
+                                    onClick={() => paginate(currentPage - 1)}
+                                >
+                                    ← Previous
+                                </button>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button 
+                                        key={i}
+                                        className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                                        onClick={() => paginate(i + 1)}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                                <button 
+                                    className="pagination-btn pagination-nav-btn"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => paginate(currentPage + 1)}
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-        </div>
+        </StudentLayout>
     );
 };
 

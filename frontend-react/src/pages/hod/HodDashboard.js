@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -48,7 +49,7 @@ const chartOptions = {
             min: 0,
             max: 5,
             ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
-            grid: { color: 'var(--clr-chart-grid)' }
+            grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false }
         },
         x: {
             ticks: { color: 'var(--clr-text-2)', font: { family: 'Inter', size: 11, weight: 600 } },
@@ -62,10 +63,13 @@ const chartOptions = {
 
 const HodDashboard = () => {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
+    const currentTab = searchParams.get('tab') || 'overview';
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showMessages, setShowMessages] = useState(false);
-    const [viewMode, setViewMode] = useState('overview'); // 'overview', 'high_performing', 'areas_improvement'
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const viewMode = currentTab;
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -80,8 +84,23 @@ const HodDashboard = () => {
                 setLoading(false);
             }
         };
-        fetchDashboardData();
+
+        if (user) {
+            fetchDashboardData();
+            fetchUnreadCount();
+        }
     }, [user]);
+
+    const fetchUnreadCount = async () => {
+        try {
+            const res = await api.get('/messages/unread');
+            if (res.data.success) {
+                setUnreadMessages(res.data.count);
+            }
+        } catch (err) {
+            console.error("Failed to fetch unread count", err);
+        }
+    };
 
     if (loading) return <AdminLayout title="HOD Dashboard"><div style={{ padding: '2rem' }}>Loading Dashboard...</div></AdminLayout>;
 
@@ -91,12 +110,12 @@ const HodDashboard = () => {
         datasets: [{
             label: 'Avg Rating',
             data: data?.trend?.map(t => t.avgRating || 0) || [],
-            borderColor: '#1E4DB7', // Standard Blue
+            borderColor: 'var(--clr-primary)',
             backgroundColor: 'rgba(30, 77, 183, 0.1)',
             tension: 0.4,
             fill: true,
             pointRadius: 5,
-            pointBackgroundColor: '#232323'
+            pointBackgroundColor: 'var(--clr-primary)'
         }]
     };
 
@@ -133,7 +152,7 @@ const HodDashboard = () => {
         datasets: [{
             label: 'Avg Rating',
             data: data?.topFaculty?.map(f => f.avgRating || 0) || [],
-            backgroundColor: '#1E4DB7', // Standard Blue
+            backgroundColor: 'var(--clr-primary)',
             borderRadius: 8,
             barThickness: 20
         }]
@@ -142,20 +161,43 @@ const HodDashboard = () => {
     const overallAvg = data?.trend?.length > 0 ? (data.trend.reduce((a, b) => a + (b.avgRating || 0), 0) / data.trend.length).toFixed(2) : '--';
 
     return (
-        <AdminLayout title={`HOD Dashboard - ${user?.department?.name || 'Department'}`}>
-            <div className="dash-header">
+        <AdminLayout title={`${user?.department?.name || 'Department'}`}>
+            <div className="dash-header" style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <h2>Welcome, {user?.name}</h2>
-                    <p>Performance insights for {user?.department?.name}</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', margin: 0 }}>Welcome, {user?.name}</h2>
+                    <p style={{ color: 'var(--clr-text-3)', fontWeight: 600, fontSize: '0.9rem', marginTop: '0.25rem' }}>{user?.department?.name || 'Department Head'}</p>
                 </div>
                 
-                <button 
-                    onClick={() => setShowMessages(true)}
-                    className="btn btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                    <FiMessageSquare /> Send Message
-                </button>
+                <div style={{ position: 'relative' }}>
+                    <button 
+                        onClick={() => setShowMessages(true)}
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.5rem', borderRadius: '10px' }}
+                    >
+                        <FiMessageSquare size={18} /> Send Message
+                    </button>
+                    {unreadMessages > 0 && (
+                        <div style={{ 
+                            position: 'absolute', 
+                            top: '-8px', 
+                            right: '-8px', 
+                            background: 'var(--clr-danger)', 
+                            color: 'white', 
+                            borderRadius: '50%', 
+                            width: '22px', 
+                            height: '22px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            fontSize: '0.75rem', 
+                            fontWeight: 800, 
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}>
+                            {unreadMessages}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Department KPIs */}
@@ -182,37 +224,21 @@ const HodDashboard = () => {
                 </div>
             </div>
 
-            {/* View Selection Tab */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                {[
-                    { id: 'overview', label: 'Domain Overview', icon: null },
-                    { id: 'high_performing', label: 'High Performing Subjects', icon: <FiCheckCircle /> },
-                    { id: 'areas_improvement', label: 'Areas of Improvement', icon: <FiAlertCircle /> }
-                ].map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setViewMode(tab.id)}
-                        className={`btn ${viewMode === tab.id ? 'btn-primary' : 'btn-ghost'}`}
-                    >
-                        {tab.icon} {tab.label}
-                    </button>
-                ))}
-            </div>
 
             {viewMode === 'overview' ? (
                 <>
                     {/* Charts Row 1 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div className="chart-card">
-                            <h3>Semester Wise Trend</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                        <div className="chart-card card-premium">
+                            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem', fontWeight: 800 }}>Semester Wise Trend</h3>
                             <div style={{ height: '300px' }}>
                                 {data?.trend?.length > 0 ? (
                                     <Line data={trendData} options={chartOptions} />
                                 ) : <NoData />}
                             </div>
                         </div>
-                        <div className="chart-card">
-                            <h3>Year Wise Trend</h3>
+                        <div className="chart-card card-premium">
+                            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem', fontWeight: 800 }}>Year Wise Trend</h3>
                             <div style={{ height: '300px' }}>
                                 {data?.yearlyTrend?.length > 0 ? (
                                     <Line data={yearlyTrendData} options={chartOptions} />
@@ -257,7 +283,10 @@ const HodDashboard = () => {
 
             <MessageModal 
                 isOpen={showMessages} 
-                onClose={() => setShowMessages(false)} 
+                onClose={() => {
+                    setShowMessages(false);
+                    fetchUnreadCount();
+                }} 
                 currentUserRole="hod"
                 availableRoles={['faculty']}
             />

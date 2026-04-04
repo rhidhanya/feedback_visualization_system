@@ -56,7 +56,6 @@ const NotificationCenter = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.15rem' }}>Notifications</h2>
-                    <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Send alerts to domain heads about feedback issues</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <select value={filter} onChange={e => setFilter(e.target.value)} style={{ padding: '0.5rem', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>

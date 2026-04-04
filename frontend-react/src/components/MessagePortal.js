@@ -1,519 +1,430 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FiSend, FiMessageSquare, FiChevronLeft, FiPlus } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FiSend, FiInbox, FiSearch, FiClock, FiMessageSquare, FiPlus } from 'react-icons/fi';
 import api from '../api/axios';
-import { io } from 'socket.io-client';
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-const MessagePortal = ({ currentUserRole, domainContext, availableRoles }) => {
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
-    
-    // UI State for Contacts and Chat
-    const [activeContact, setActiveContact] = useState(null); // null means showing contact list in mobile, or "New Message" form
-    const [isComposing, setIsComposing] = useState(false);
-    const messagesEndRef = useRef(null);
+const MessagePortal = ({ currentUserRole }) => {
+    const [inbox, setInbox] = useState([]);
+    const [sent, setSent] = useState([]);
+    const [activeTab, setActiveTab] = useState('inbox');
+    const [loading, setLoading] = useState(true);
     
     // Compose State
-    const [targetRole, setTargetRole] = useState(availableRoles[0] || '');
+    const [isComposing, setIsComposing] = useState(false);
     const [recipients, setRecipients] = useState([]);
     const [selectedRecipient, setSelectedRecipient] = useState('');
     const [subject, setSubject] = useState('');
-    const [targetDomain, setTargetDomain] = useState('');
-    const [departments, setDepartments] = useState([]);
-    const [selectedDept, setSelectedDept] = useState('');
-    const [facultySearchTerm, setFacultySearchTerm] = useState('');
+    const [body, setBody] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sending, setSending] = useState(false);
+    const [selectedMessage, setSelectedMessage] = useState(null);
+    const [fetchingMsg, setFetchingMsg] = useState(false);
 
-    const fetchMessages = useCallback(async () => {
+    const fetchData = useCallback(async () => {
+        setLoading(true);
         try {
-            const res = await api.get('/messages');
-            if (res.data.success) {
-                setMessages(res.data.data);
-            }
+            const [inRes, sentRes, recRes] = await Promise.all([
+                api.get('/messages'),
+                api.get('/messages/sent'),
+                api.get('/messages/recipients')
+            ]);
+            setInbox(inRes.data.data || []);
+            setSent(sentRes.data.data || []);
+            setRecipients(recRes.data.data || []);
         } catch (err) {
             console.error("Failed to fetch messages", err);
+        } finally {
+            setLoading(false);
         }
     }, []);
 
-    const fetchRecipients = useCallback(async () => {
-        if (!['admin', 'principal', 'hod', 'faculty'].includes(currentUserRole)) return;
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+    
+    useEffect(() => {
+        setSelectedMessage(null);
+    }, [activeTab, isComposing]);
+    
+    const handleSelectMessage = async (msg) => {
+        setFetchingMsg(true);
         try {
-            const res = await api.get('/users/recipients');
+            const res = await api.get(`/messages/${msg._id}`);
             if (res.data.success) {
-                setRecipients(res.data.data);
-            }
-        } catch (err) {
-            console.error("Failed to fetch recipients", err);
-        }
-    }, [currentUserRole]);
-
-    const fetchDepts = useCallback(async () => {
-        try {
-            const res = await api.get('/departments');
-            if (res.data.success) setDepartments(res.data.data);
-        } catch (err) {
-            console.error("Failed to fetch departments", err);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchMessages();
-        fetchRecipients();
-        fetchDepts();
-
-        // Socket.IO for real-time updates
-        const socket = io(BACKEND_URL);
-        
-        socket.on('new_message', (msg) => {
-            // Check if this message is relevant to the current user
-            // In a real app we'd filter at the socket level or room level,
-            // but for now we filter here by checking if it matches the current user's role/id.
-            // Actually, the backend emits it globally, so we check.
-            
-            // A more robust check should be done, but fetchMessages is always safe.
-            fetchMessages();
-        });
-
-        return () => socket.disconnect();
-    }, [fetchMessages, fetchRecipients, fetchDepts, currentUserRole]);
-
-    useEffect(() => {
-        if (targetRole === 'hod' && selectedDept) {
-            const hod = recipients.find(r => r.role === 'hod' && r.department?._id === selectedDept);
-            if (hod) setSelectedRecipient(hod._id);
-            else setSelectedRecipient('');
-        }
-    }, [selectedDept, targetRole, recipients]);
-
-    // Scroll to bottom when messages update
-    useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [messages, activeContact]);
-
-    const sendMessage = async (e) => {
-        e.preventDefault();
-        if (!newMessage.trim() && !isComposing) return;
-
-        try {
-            // Determine API payload whether replying to activeContact or composing new
-            let payload = {};
-
-            if (isComposing) {
-                if (!targetRole) return;
-                payload = {
-                    receiverRoles: [targetRole],
-                    receiver: selectedRecipient || undefined,
-                    subject: subject || undefined,
-                    domainContext: targetRole === 'domain_head' && !selectedRecipient ? targetDomain : '',
-                    text: newMessage
-                };
-            } else if (activeContact) {
-                // Determine the correct receiver from activeContact
-                if (activeContact.type === 'user') {
-                    payload = {
-                        receiverRoles: [activeContact.role],
-                        receiver: activeContact.id,
-                        text: newMessage
-                    };
-                } else if (activeContact.type === 'role') {
-                    payload = {
-                        receiverRoles: [activeContact.id],
-                        receiver: undefined,
-                        text: newMessage
-                    };
+                setSelectedMessage(res.data.data);
+                // If it was unread and we are high-fived to see the inbox, refresh the list to show as read
+                if (activeTab === 'inbox' && !msg.isRead) {
+                    fetchData();
                 }
             }
+        } catch (err) {
+            console.error("Failed to fetch message details", err);
+        } finally {
+            setFetchingMsg(false);
+        }
+    };
 
-            await api.post('/messages', payload);
-            setNewMessage('');
-            if (isComposing) {
-                setSubject('');
-                setSelectedRecipient('');
-                setIsComposing(false);
-            }
-            fetchMessages(); // refresh list
+    const handleSend = async (e) => {
+        e.preventDefault();
+        if (!selectedRecipient || !subject || !body) return;
+
+        setSending(true);
+        try {
+            await api.post('/messages', {
+                recipientId: selectedRecipient,
+                subject,
+                body
+            });
+            setBody('');
+            setSubject('');
+            setSelectedRecipient('');
+            setSearchTerm('');
+            setIsComposing(false);
+            fetchData();
         } catch (err) {
             console.error("Failed to send message", err);
+        } finally {
+            setSending(false);
         }
     };
 
-    // --- Message Grouping Logic ---
-    // Group messages by participants to form "Contacts" threading.
-    const groupedThreads = Object.values(messages.reduce((acc, msg) => {
-        // Determine the "Other party"
-        let threadId = '';
-        let threadName = '';
-        let type = 'user'; // 'user' or 'role'
-        let threadRole = '';
-        
-        const isSentByMe = Boolean(msg.senderRole === currentUserRole && msg.sender?.email && msg.sender.email !== 'system');
-        
-        if (isSentByMe) {
-            // Sent by me, so the "other party" is the receiver or receiver roles
-            if (msg.receiver?._id) {
-                threadId = msg.receiver._id;
-                threadName = msg.receiver.name || 'Unknown User';
-                threadRole = msg.receiverRoles[0] || '';
-            } else {
-                threadId = msg.receiverRoles.join('_');
-                threadName = msg.receiverRoles.map(r => r.toUpperCase().replace('_', ' ')).join(', ');
-                type = 'role';
-                threadRole = msg.receiverRoles[0] || '';
-            }
-        } else {
-            // Sent to me, so the "other party" is the sender
-            threadId = msg.sender?._id || msg.senderRole;
-            threadName = msg.sender?.name ? msg.sender.name : msg.senderRole.toUpperCase().replace('_', ' ');
-            threadRole = msg.senderRole;
-            if (!msg.sender?._id) type = 'role';
-        }
-
-        // Add domain context to ID to isolate domain specific chats if needed
-        if (msg.domainContext) {
-            threadId += `_${msg.domainContext}`;
-            if (type === 'role') threadName += ` (${msg.domainContext})`;
-        }
-
-        if (!acc[threadId]) {
-            acc[threadId] = {
-                id: threadId,
-                name: threadName,
-                role: threadRole,
-                type,
-                messages: [],
-                lastMessage: msg, // they come sorted desc initially
-            };
-        }
-        
-        // Ensure chronological push
-        acc[threadId].messages.unshift(msg);
-        
-        // Keep keeping track of the absolute last message for the sidebar preview
-        if (new Date(msg.createdAt) > new Date(acc[threadId].lastMessage.createdAt)) {
-            acc[threadId].lastMessage = msg;
-        }
-
-        return acc;
-    }, {}));
-
-    // Sort threads by most recent message
-    groupedThreads.sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt));
-
-    const activeThread = isComposing ? null : groupedThreads.find(t => t.id === activeContact?.id);
-
-    // --- Format Timestamps ---
-    const formatTime = (dateString) => {
-        const d = new Date(dateString);
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    const domains = ['transport', 'mess', 'hostel', 'sanitation', 'academic'];
+    const filteredRecipients = recipients.filter(r => 
+        r.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        r.role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const activeList = activeTab === 'inbox' ? inbox : sent;
 
     return (
-        <div style={{ display: 'flex', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', height: '550px' }}>
-            
-            {/* LEFT PANEL: Contact List */}
-            <div style={{ 
-                width: '320px', 
-                borderRight: '1px solid #e2e8f0', 
-                display: activeContact || isComposing ? 'none' : 'flex', 
-                flexDirection: 'column',
-                background: '#f8fafc',
-                '@media (min-width: 768px)': { display: 'flex' } // Always show on desktop
-            }}>
-                <div style={{ padding: '1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FiMessageSquare size={18} color="var(--clr-primary)" />
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>Messages</h3>
-                    </div>
+        <div className="message-portal-container" style={{ display: 'flex', gap: '1.5rem', height: '600px', width: '100%', boxSizing: 'border-box', padding: '1.25rem' }}>
+            {/* Sidebar / Tabs */}
+            <div style={{ width: '220px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={() => setIsComposing(true)}
+                    style={{ 
+                        padding: '1rem', 
+                        borderRadius: '12px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '0.75rem', 
+                        marginTop: '1.25rem',
+                        marginBottom: '1rem', 
+                        background: 'var(--clr-primary)', 
+                        color: 'white', 
+                        border: 'none', 
+                        fontWeight: 800, 
+                        fontSize: '0.95rem',
+                        letterSpacing: '0.05em',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(var(--clr-primary-rgb), 0.2)',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                    <FiPlus size={20} /> COMPOSE
+                </button>
+                
+                <div style={{ background: 'var(--clr-surface)', borderRadius: '16px', border: '1px solid var(--clr-border)', overflow: 'hidden', padding: '0.5rem' }}>
                     <button 
-                        onClick={() => { setIsComposing(true); setActiveContact(null); }}
-                        style={{ background: 'var(--clr-primary-lt)', color: 'var(--clr-primary)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        title="New Message"
+                        onClick={() => { setActiveTab('inbox'); setIsComposing(false); setSelectedMessage(null); }}
+                        style={{ 
+                            width: '100%', padding: '0.875rem 1rem', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.875rem',
+                            borderRadius: '10px',
+                            background: activeTab === 'inbox' && !isComposing ? 'var(--clr-primary-lt)' : 'transparent',
+                            color: activeTab === 'inbox' && !isComposing ? 'var(--clr-primary)' : 'var(--clr-text-2)',
+                            fontWeight: activeTab === 'inbox' && !isComposing ? 700 : 500,
+                            cursor: 'pointer', transition: 'all 0.2s',
+                            marginBottom: '0.25rem'
+                        }}
                     >
-                        <FiPlus size={16} />
+                        <FiInbox size={20} /> <span style={{ fontSize: '0.95rem' }}>Inbox</span>
+                        {inbox.filter(m => !m.isRead).length > 0 && (
+                            <span style={{ marginLeft: 'auto', background: 'var(--clr-danger)', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                                {inbox.filter(m => !m.isRead).length}
+                            </span>
+                        )}
                     </button>
-                </div>
-
-                <div style={{ overflowY: 'auto', flex: 1 }}>
-                    {groupedThreads.length === 0 ? (
-                        <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                            No conversations yet.<br />Click + to start a new message.
-                        </div>
-                    ) : (
-                        groupedThreads.map(thread => (
-                            <div 
-                                key={thread.id} 
-                                onClick={() => { setActiveContact(thread); setIsComposing(false); }}
-                                style={{
-                                    padding: '1rem',
-                                    borderBottom: '1px solid #e2e8f0',
-                                    cursor: 'pointer',
-                                    background: activeContact?.id === thread.id ? '#eff6ff' : 'transparent',
-                                    transition: 'background 0.2s',
-                                    display: 'flex',
-                                    gap: '0.75rem',
-                                    alignItems: 'center'
-                                }}
-                            >
-                                <div style={{ 
-                                    width: '40px', height: '40px', borderRadius: '50%', background: 'var(--clr-primary-lt)', 
-                                    color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0
-                                }}>
-                                    {thread.name.charAt(0).toUpperCase()}
-                                </div>
-                                <div style={{ overflow: 'hidden', flex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                        <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{thread.name}</h4>
-                                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{formatTime(thread.lastMessage.createdAt)}</span>
-                                    </div>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {thread.lastMessage.senderRole === currentUserRole ? 'You: ' : ''}{thread.lastMessage.text}
-                                    </p>
-                                </div>
-                            </div>
-                        ))
-                    )}
+                    <button 
+                        onClick={() => { setActiveTab('sent'); setIsComposing(false); setSelectedMessage(null); }}
+                        style={{ 
+                            width: '100%', padding: '0.875rem 1rem', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.875rem',
+                            borderRadius: '10px',
+                            background: activeTab === 'sent' && !isComposing ? 'var(--clr-primary-lt)' : 'transparent',
+                            color: activeTab === 'sent' && !isComposing ? 'var(--clr-primary)' : 'var(--clr-text-2)',
+                            fontWeight: activeTab === 'sent' && !isComposing ? 700 : 500,
+                            cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                    >
+                        <FiSend size={20} /> <span style={{ fontSize: '0.95rem' }}>Sent Items</span>
+                    </button>
                 </div>
             </div>
 
-            {/* RIGHT PANEL: Chat Area */}
-            <div style={{ 
-                flex: 1, 
-                display: (!activeContact && !isComposing) ? 'none' : 'flex', 
-                flexDirection: 'column', 
-                background: '#fff',
-                position: 'relative',
-                '@media (min-width: 768px)': { display: 'flex' }
-            }}>
-                
-                {(!activeContact && !isComposing) ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
-                        <FiMessageSquare size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                        <p>Select a conversation or start a new message.</p>
-                    </div>
-                ) : (
-                    <>
-                        {/* Chat Header */}
-                        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '1rem', background: '#fff' }}>
+            {/* Main View */}
+            <div style={{ flex: 1, background: 'var(--clr-surface)', borderRadius: '12px', border: '1px solid var(--clr-border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {isComposing ? (
+                    <form onSubmit={handleSend} style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%', boxSizing: 'border-box' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--clr-primary)' }}>New Message</h3>
                             <button 
-                                onClick={() => { setActiveContact(null); setIsComposing(false); }}
-                                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'none', '@media (max-width: 767px)': { display: 'block' } }}
+                                type="button" 
+                                className="btn btn-ghost" 
+                                onClick={() => setIsComposing(false)} 
+                                style={{ 
+                                    background: 'var(--clr-bg)', 
+                                    border: 'none', 
+                                    color: 'var(--clr-text-3)', 
+                                    cursor: 'pointer',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem'
+                                }}
                             >
-                                <FiChevronLeft size={24} />
+                                CANCEL
                             </button>
-
-                            {isComposing ? (
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>New Message</h3>
-                            ) : (
-                                <>
-                                    <div style={{ 
-                                        width: '36px', height: '36px', borderRadius: '50%', background: 'var(--clr-primary-lt)', 
-                                        color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
-                                    }}>
-                                        {activeContact.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>{activeContact.name}</h3>
-                                </>
-                            )}
                         </div>
-
-                        {/* Compose Panel Fields (if composing) */}
-                        {isComposing && (
-                            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                                    <div>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Recipient Type</label>
-                                        <select
-                                            value={targetRole}
-                                            onChange={e => { 
-                                                setTargetRole(e.target.value); 
-                                                setSelectedRecipient(''); 
-                                                setSelectedDept('');
-                                            }}
-                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                        >
-                                            <option value="">Select Role...</option>
-                                            {availableRoles.map(role => <option key={role} value={role}>{role.replace('_', ' ').toUpperCase()}</option>)}
-                                        </select>
-                                    </div>
-                                    
-                                    {['admin', 'principal', 'faculty'].includes(currentUserRole) && (targetRole === 'hod') ? (
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Select Department</label>
-                                            <select
-                                                value={selectedDept}
-                                                onChange={e => setSelectedDept(e.target.value)}
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                            >
-                                                <option value="">Select Department...</option>
-                                                {departments.map(d => (
-                                                    <option key={d._id} value={d._id}>{d.name} ({d.code})</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ) : ['admin', 'principal'].includes(currentUserRole) && targetRole === 'domain_head' ? (
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Target Domain</label>
-                                            <select
-                                                value={targetDomain}
-                                                onChange={e => setTargetDomain(e.target.value)}
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                                required
-                                            >
-                                                <option value="">Select Domain...</option>
-                                                {domains.map(d => <option key={d} value={d}>{d}</option>)}
-                                            </select>
-                                        </div>
-                                    ) : targetRole === 'faculty' ? (
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Search & Select Faculty</label>
-                                            <div style={{ position: 'relative' }}>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Type name to search..."
-                                                    value={facultySearchTerm}
-                                                    onChange={e => setFacultySearchTerm(e.target.value)}
-                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', marginBottom: '0.5rem', boxSizing: 'border-box' }}
-                                                />
-                                                <select
-                                                    value={selectedRecipient}
-                                                    onChange={e => setSelectedRecipient(e.target.data)}
-                                                    onClick={e => {
-                                                        const val = e.target.value;
-                                                        if (val) setSelectedRecipient(val);
-                                                    }}
-                                                    size={recipients.filter(r => r.role === 'faculty' && r.name.toLowerCase().includes(facultySearchTerm.toLowerCase())).length > 0 ? 5 : 1}
-                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', background: '#fff' }}
-                                                >
-                                                    <option value="">-- All Faculty (Broadcast) --</option>
-                                                    {recipients
-                                                        .filter(r => r.role === 'faculty' && r.name.toLowerCase().includes(facultySearchTerm.toLowerCase()))
-                                                        .map(r => (
-                                                            <option key={r._id} value={r._id}>
-                                                                {r.name} {r.department ? `(${r.department.code})` : ''} — {r.email}
-                                                            </option>
-                                                        ))
-                                                    }
-                                                </select>
-                                            </div>
-                                        </div>
-                                    ) : targetRole && recipients.filter(r => r.role === targetRole).length > 0 ? (
-                                        <div>
-                                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>Select Recipient (Optional)</label>
-                                            <select
-                                                value={selectedRecipient}
-                                                onChange={e => setSelectedRecipient(e.target.value)}
-                                                style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                                            >
-                                                <option value="">All {targetRole.replace('_', ' ').toUpperCase()}S (Broadcast)</option>
-                                                {recipients.filter(r => r.role === targetRole).map(r => (
-                                                    <option key={r._id} value={r._id}>{r.name} {r.department ? `(${r.department.code})` : ''}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ) : null}
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <div style={{ position: 'relative' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clr-text-2)', display: 'block', marginBottom: '0.6rem' }}>Recipient</label>
+                                <div style={{ position: 'relative' }}>
+                                    <FiSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search by name or role..." 
+                                        value={searchTerm}
+                                        onChange={e => setSearchTerm(e.target.value)}
+                                        style={{ 
+                                            width: '100%', 
+                                            padding: '0.875rem 0.875rem 0.875rem 2.75rem', 
+                                            borderRadius: '10px', 
+                                            border: '1px solid var(--clr-border)', 
+                                            fontSize: '0.95rem', 
+                                            outline: 'none', 
+                                            boxSizing: 'border-box',
+                                            transition: 'border-color 0.2s',
+                                            background: '#f8fafc'
+                                        }}
+                                        onFocus={e => e.target.style.borderColor = 'var(--clr-primary)'}
+                                        onBlur={e => e.target.style.borderColor = 'var(--clr-border)'}
+                                    />
                                 </div>
-                                <input
-                                    type="text"
+                                {searchTerm && !selectedRecipient && (
+                                    <div style={{ 
+                                        position: 'absolute', 
+                                        top: 'calc(100% + 8px)', 
+                                        left: 0, 
+                                        right: 0, 
+                                        background: '#fff', 
+                                        border: '1px solid var(--clr-border)', 
+                                        borderRadius: '12px', 
+                                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', 
+                                        zIndex: 100, 
+                                        maxHeight: '220px', 
+                                        overflowY: 'auto' 
+                                    }}>
+                                        {filteredRecipients.length > 0 ? filteredRecipients.map(r => (
+                                            <div 
+                                                key={r._id} 
+                                                onClick={() => { setSelectedRecipient(r._id); setSearchTerm(r.name); }}
+                                                style={{ 
+                                                    padding: '0.85rem 1.25rem', 
+                                                    cursor: 'pointer', 
+                                                    borderBottom: '1px solid #f1f5f9', 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center',
+                                                    transition: 'background 0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                <span style={{ fontWeight: 600, color: 'var(--clr-text)' }}>{r.name}</span>
+                                                <span style={{ 
+                                                    fontSize: '0.7rem', 
+                                                    color: 'var(--clr-primary)', 
+                                                    background: 'var(--clr-primary-lt)', 
+                                                    padding: '3px 10px', 
+                                                    borderRadius: '6px', 
+                                                    textTransform: 'uppercase',
+                                                    fontWeight: 800,
+                                                    letterSpacing: '0.05em'
+                                                }}>{r.role}</span>
+                                            </div>
+                                        )) : (
+                                            <div style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--clr-text-3)', fontSize: '0.9rem' }}>No users found</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clr-text-2)', display: 'block', marginBottom: '0.6rem' }}>Subject</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Brief summary of the message" 
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
-                                    placeholder="Subject (Optional)"
-                                    style={{ width: '100%', boxSizing: 'border-box', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none' }}
+                                    style={{ 
+                                        width: '100%', 
+                                        padding: '0.875rem', 
+                                        borderRadius: '10px', 
+                                        border: '1px solid var(--clr-border)', 
+                                        fontSize: '0.95rem', 
+                                        outline: 'none', 
+                                        boxSizing: 'border-box',
+                                        background: '#f8fafc'
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = 'var(--clr-primary)'}
+                                    onBlur={e => e.target.style.borderColor = 'var(--clr-border)'}
+                                    required
                                 />
                             </div>
-                        )}
+                        </div>
 
-                        {/* Chat Messages Area */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: '#f8fafc' }}>
-                            {!isComposing && activeThread?.messages.map((msg, index) => {
-                                const isSentByMe = Boolean(msg.senderRole === currentUserRole && msg.sender?.email && msg.sender.email !== 'system');
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--clr-text-2)', display: 'block', marginBottom: '0.6rem' }}>Message Content</label>
+                            <textarea 
+                                placeholder="Type your message here..."
+                                value={body}
+                                onChange={e => setBody(e.target.value)}
+                                style={{ 
+                                    flex: 1, 
+                                    padding: '1.25rem', 
+                                    borderRadius: '10px', 
+                                    border: '1px solid var(--clr-border)', 
+                                    fontSize: '1rem', 
+                                    outline: 'none', 
+                                    resize: 'none', 
+                                    fontFamily: 'inherit', 
+                                    boxSizing: 'border-box',
+                                    lineHeight: '1.6',
+                                    background: '#f8fafc'
+                                }}
+                                onFocus={e => e.target.style.borderColor = 'var(--clr-primary)'}
+                                onBlur={e => e.target.style.borderColor = 'var(--clr-border)'}
+                                required
+                            />
+                        </div>
 
-                                
-                                return (
-                                    <div key={msg._id} style={{ display: 'flex', flexDirection: 'column', alignItems: isSentByMe ? 'flex-end' : 'flex-start' }}>
-                                        <div style={{
-                                            background: isSentByMe ? 'var(--clr-primary)' : '#fff',
-                                            color: isSentByMe ? '#fff' : '#0f172a',
-                                            padding: '0.75rem 1rem', 
-                                            borderRadius: isSentByMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                            border: isSentByMe ? 'none' : '1px solid #e2e8f0',
-                                            maxWidth: '75%',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                            position: 'relative'
-                                        }}>
-                                            {msg.subject && <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.25rem', opacity: 0.9 }}>Sub: {msg.subject}</div>}
-                                            <div style={{ fontSize: '0.95rem', lineHeight: 1.4, wordBreak: 'break-word' }}>{msg.text}</div>
-                                            
-                                            <div style={{ 
-                                                fontSize: '0.65rem', 
-                                                color: isSentByMe ? 'rgba(255,255,255,0.7)' : '#94a3b8', 
-                                                textAlign: 'right', 
-                                                marginTop: '4px',
-                                                userSelect: 'none'
-                                            }}>
-                                                {formatTime(msg.createdAt)}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                            <button 
+                                type="submit" 
+                                className="btn-login-gradient" 
+                                disabled={sending || !selectedRecipient} 
+                                style={{ 
+                                    padding: '1rem 3rem', 
+                                    borderRadius: '12px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    gap: '0.75rem', 
+                                    background: (sending || !selectedRecipient) ? '#94a3b8' : 'var(--clr-primary)', 
+                                    color: 'white', 
+                                    border: 'none', 
+                                    fontWeight: 700, 
+                                    fontSize: '1rem',
+                                    cursor: (sending || !selectedRecipient) ? 'not-allowed' : 'pointer', 
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                    transition: 'all 0.2s',
+                                    width: 'auto'
+                                }}
+                            >
+                                {sending ? 'Sending...' : <><FiSend size={18} /> SEND MESSAGE</>}
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--clr-border)', background: 'var(--clr-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, textTransform: 'capitalize', fontWeight: 800, fontSize: '1.1rem' }}>
+                                {selectedMessage ? <><FiPlus style={{ transform: 'rotate(45deg)', cursor: 'pointer' }} onClick={() => setSelectedMessage(null)} /> Message Detail</> : activeTab}
+                            </h3>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--clr-text-3)', background: 'var(--clr-surface-2)', padding: '2px 8px', borderRadius: '4px' }}>
+                                    {selectedMessage ? 'Active' : `${activeList.length} Messages`}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div style={{ flex: 1, overflowY: 'auto' }}>
+                            {loading || fetchingMsg ? (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>Loading...</div>
+                            ) : selectedMessage ? (
+                                <div style={{ padding: '2rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.5rem', borderBottom: '1px solid var(--clr-border)', paddingBottom: '1.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                                            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--clr-primary-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-primary)', fontWeight: 800, fontSize: '1.25rem', border: '2px solid var(--clr-primary-20)' }}>
+                                                {(activeTab === 'inbox' ? selectedMessage.sender?.name : selectedMessage.recipient?.name)?.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--clr-text)' }}>{activeTab === 'inbox' ? selectedMessage.sender?.name : selectedMessage.recipient?.name}</div>
+                                                <div style={{ color: 'var(--clr-text-3)', fontSize: '0.9rem', fontWeight: 600 }}>{activeTab === 'inbox' ? selectedMessage.sender?.role : selectedMessage.recipient?.role}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--clr-text-3)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <FiClock size={14} /> {formatDate(selectedMessage.createdAt)}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--clr-primary)', fontWeight: 800, marginTop: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                {activeTab === 'inbox' ? 'Received' : 'Sent'}
                                             </div>
                                         </div>
                                     </div>
-                                );
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
+                                    
+                                    <h4 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--clr-text)', marginBottom: '1.5rem' }}>{selectedMessage.subject}</h4>
+                                    <div style={{ fontSize: '1.05rem', color: 'var(--clr-text-2)', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                                        {selectedMessage.body}
+                                    </div>
 
-                        {/* Input Area */}
-                        <form onSubmit={sendMessage} style={{ padding: '1rem', borderTop: '1px solid #e2e8f0', background: '#fff' }}>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-                                <textarea
-                                    value={newMessage}
-                                    onChange={e => setNewMessage(e.target.value)}
-                                    placeholder="Type your message..."
-                                    style={{ 
-                                        flex: 1, 
-                                        padding: '0.75rem 1rem', 
-                                        borderRadius: '24px', 
-                                        border: '1px solid #cbd5e1', 
-                                        outline: 'none', 
-                                        resize: 'none', 
-                                        maxHeight: '120px',
-                                        minHeight: '44px',
-                                        fontSize: '0.95rem',
-                                        fontFamily: 'inherit',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    rows={1}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            sendMessage(e);
-                                        }
-                                    }}
-                                />
-                                <button 
-                                    type="submit" 
-                                    disabled={!newMessage.trim()}
-                                    style={{ 
-                                        background: newMessage.trim() ? 'var(--clr-primary)' : '#e2e8f0', 
-                                        color: newMessage.trim() ? '#fff' : '#94a3b8', 
-                                        border: 'none', 
-                                        borderRadius: '50%', 
-                                        width: '44px', 
-                                        height: '44px', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center', 
-                                        cursor: newMessage.trim() ? 'pointer' : 'not-allowed', 
-                                        flexShrink: 0,
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <FiSend size={18} style={{ marginLeft: '-2px', marginTop: '2px' }} />
-                                </button>
-                            </div>
-                        </form>
-                    </>
+                                    {/* Redundant back button removed as global back button exists */}
+                                </div>
+                            ) : activeList.length === 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.5 }}>
+                                    <FiMessageSquare size={48} style={{ marginBottom: '1rem' }} />
+                                    <p>No messages found in your {activeTab}.</p>
+                                </div>
+                            ) : (
+                                activeList.map(msg => (
+                                    <div 
+                                        key={msg._id} 
+                                        className={`message-item ${msg.isRead ? 'read' : 'unread'}`}
+                                        onClick={() => handleSelectMessage(msg)}
+                                        style={{ 
+                                            padding: '1.25rem', borderBottom: '1px solid var(--clr-border)', cursor: 'pointer', transition: 'all 0.2s',
+                                            background: activeTab === 'inbox' && !msg.isRead ? 'rgba(var(--clr-primary-rgb), 0.05)' : 'transparent',
+                                            borderLeft: activeTab === 'inbox' && !msg.isRead ? '4px solid var(--clr-primary)' : 'none'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--clr-primary-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clr-primary)', fontWeight: 700, border: '1px solid var(--clr-primary-20)' }}>
+                                                    {(activeTab === 'inbox' ? msg.sender?.name : msg.recipient?.name)?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, color: 'var(--clr-text)', fontSize: '0.95rem' }}>{activeTab === 'inbox' ? msg.sender?.name : msg.recipient?.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-3)', fontWeight: 600 }}>{activeTab === 'inbox' ? msg.sender?.role : msg.recipient?.role}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-3)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                                                <FiClock size={12} /> {formatDate(msg.createdAt)}
+                                            </div>
+                                        </div>
+                                        <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--clr-text)', marginBottom: '0.35rem' }}>{msg.subject}</div>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--clr-text-2)', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{msg.body}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

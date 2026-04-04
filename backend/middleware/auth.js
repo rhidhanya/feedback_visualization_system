@@ -26,16 +26,21 @@ exports.verifyToken = (req, res, next) => {
 };
 
 // ─── Require specific role(s) ──────────────────────────────────────────────
-// Usage: requireRole('admin') or requireRole('student', 'admin')
+// Usage: requireRole('admin') or requireRole('student', 'admin') or requireRole(['admin', 'student'])
 exports.requireRole = (...roles) => {
+    // Flatten in case an array is passed: requireRole(["admin", "hod"]) -> roles = [["admin","hod"]]
+    const flatRoles = roles.flat();
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ success: false, message: "Unauthorized" });
         }
-        if (!roles.includes(req.user.role)) {
+        // Normalize both sides to lowercase for comparison
+        const userRole = (req.user.role || "").toLowerCase();
+        const normalizedRoles = flatRoles.map(r => (r || "").toLowerCase());
+        if (!normalizedRoles.includes(userRole)) {
             return res.status(403).json({
                 success: false,
-                message: `Access denied. Required role: ${roles.join(" or ")}`,
+                message: `Access denied. Required role: ${flatRoles.join(" or ")}`,
             });
         }
         next();

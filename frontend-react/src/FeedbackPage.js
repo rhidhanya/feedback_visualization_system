@@ -1,10 +1,10 @@
 import { FiArrowLeft } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "./api/axios";
 import { useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 
-const API = "http://localhost:5000/api/feedback";
+const API = "/feedback";
 
 const FeedbackPage = () => {
   const navigate = useNavigate();
@@ -23,15 +23,8 @@ const FeedbackPage = () => {
         setLoading(true);
         setError("");
 
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(
-          `${API}/files/name/${encodeURIComponent(formName)}`,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : "",
-            },
-          }
+        const res = await api.get(
+          `${API}/files/name/${encodeURIComponent(formName)}`
         );
 
         const allRows = res.data;

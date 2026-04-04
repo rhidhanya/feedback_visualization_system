@@ -68,8 +68,7 @@ domainFeedbackSchema.index(
     { unique: true, name: "unique_student_domain_semester" }
 );
 
-domainFeedbackSchema.index({ domainSlug: 1 });
-domainFeedbackSchema.index({ overallRating: 1 });
+domainFeedbackSchema.index({ domainSlug: 1, overallRating: 1, semester: 1 });
 domainFeedbackSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("DomainFeedback", domainFeedbackSchema);

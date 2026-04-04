@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import {
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler
+} from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import { io } from 'socket.io-client';
 import { FiMessageSquare, FiStar, FiAlertTriangle, FiCheckCircle, FiInbox } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
+
+ChartJS.register(
+    CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler
+);
 
 const AdminDomainDashboard = () => {
     const { domainSlug } = useParams();

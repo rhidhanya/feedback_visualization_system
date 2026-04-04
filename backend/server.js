@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const compression = require("compression");
 const http = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
@@ -37,15 +38,38 @@ const io = new Server(server, {
 });
 
 // ─── Global Middleware ─────────────────────────────────────────────────────
+// 1. GZIP compression — dramatically reduces JSON response sizes
+app.use(compression({
+  level: 6, // Good balance between speed and compression ratio
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:3000",
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Attach io to every request so controllers can emit events
 app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[Request] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+  });
   req.io = io;
+  next();
+});
+
+// Cache-Control headers for analytics (read-only, changes rarely)
+app.use('/api/analytics', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'private, max-age=60'); // 1 min browser cache
+  }
   next();
 });
 

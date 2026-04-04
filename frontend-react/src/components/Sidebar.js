@@ -11,14 +11,14 @@ const Sidebar = ({ user }) => {
     const toggleSidebar = () => setCollapsed(!collapsed);
 
     const navItems = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: <FiGrid /> },
+        { path: '/admin/domain-overview', label: 'Dashboard', icon: <FiGrid /> },
         { path: '/admin/manage', label: 'Management', icon: <FiShield />, role: 'ADMIN' },
     ];
 
     return (
         <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <div className="brand" onClick={() => navigate('/admin/dashboard')}>
+                <div className="brand" onClick={() => navigate('/admin/domain-overview')}>
                     <div className="brand-icon">
                         {/* Placeholder for EdTech branding */}
                         <div style={{ width: 30, height: 30, background: 'var(--clr-logo-bg)', borderRadius: 4 }}></div>

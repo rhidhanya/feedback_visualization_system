@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import '../App.css';
 import logo from '../logo.png';
@@ -25,7 +25,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+            const res = await api.post('/auth/register', formData);
             console.log(res.data);
             localStorage.setItem('campuslens_auth_token', res.data.token);
             localStorage.setItem('campuslens_auth_user', JSON.stringify(res.data.user));

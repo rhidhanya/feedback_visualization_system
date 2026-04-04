@@ -3,8 +3,9 @@ import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
 import {
     FiPlus, FiEdit2, FiTrash2, FiUser, FiMail, FiBook,
-    FiSearch, FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiUsers, FiCheckCircle
+    FiSearch, FiX, FiAlertCircle, FiRefreshCw, FiUsers, FiCheckCircle
 } from 'react-icons/fi';
+import useDebounce from '../../utils/useDebounce';
 
 const FacultyManagement = () => {
     const [faculty, setFaculty] = useState([]);
@@ -12,6 +13,7 @@ const FacultyManagement = () => {
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 400);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingFaculty, setEditingFaculty] = useState(null);
     const [toast, setToast] = useState(null);
@@ -34,14 +36,14 @@ const FacultyManagement = () => {
             const params = new URLSearchParams({
                 page: currentPage,
                 limit: 10,
-                search: search
+                search: debouncedSearch
             });
             if (filters.department) params.append('department', filters.department);
             if (filters.isActive !== '') params.append('isActive', filters.isActive);
 
             const [facRes, deptRes] = await Promise.all([
                 api.get(`/admin/faculty?${params.toString()}`),
-                api.get('/departments'),
+                api.get('/departments').catch(() => ({ data: { data: [] } })),
             ]);
             setFaculty(facRes.data.data || []);
             setTotalPages(facRes.data.pages || 1);
@@ -52,7 +54,7 @@ const FacultyManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, search, filters]);
+    }, [currentPage, debouncedSearch, filters]);
 
     const fetchSubjectsForDept = async (deptId) => {
         if (!deptId) { setSubjects([]); return; }
@@ -183,7 +185,6 @@ const FacultyManagement = () => {
             <div className="page-header" style={{ marginBottom: '1.5rem' }}>
                 <div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>Faculty Management</h2>
-                    <p style={{ color: 'var(--clr-text-3)', fontSize: '0.875rem' }}>Core faculty directory & subject authorization control</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button className="btn btn-ghost" onClick={fetchFaculty}>
@@ -195,7 +196,7 @@ const FacultyManagement = () => {
                 </div>
             </div>
 
-            <div className="admin-kpi-grid" style={{ minHeight: '120px' }}>
+            <div className="admin-kpi-grid" style={{ minHeight: '95px' }}>
                 <div className="admin-kpi-card">
                     <div className="icon-box"><FiUsers size={22} /></div>
                     <div className="info">
@@ -217,13 +218,6 @@ const FacultyManagement = () => {
                         <span className="value">{faculty.filter(f => f.isActive).length}</span>
                     </div>
                 </div>
-                <div className="admin-kpi-card">
-                    <div className="icon-box"><FiAlertCircle size={22} /></div>
-                    <div className="info">
-                        <span className="label">Access Control</span>
-                        <span className="value">Lvl 2</span>
-                    </div>
-                </div>
             </div>
 
             {toast && (
@@ -232,7 +226,7 @@ const FacultyManagement = () => {
                 </div>
             )}
 
-            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
+            <div className="filter-bar card-premium" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', background: 'var(--clr-surface)', position: 'relative', zIndex: 10 }}>
                 <div className="input-group" style={{ margin: 0, flex: 1 }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Department</label>
                     <select
@@ -341,10 +335,42 @@ const FacultyManagement = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'center', alignItems: 'center' }}>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>← Previous</button>
-                            <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 500 }}>Page {currentPage} of {totalPages}</span>
-                            <button className="btn btn-ghost" style={{ borderRadius: '10px' }} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next →</button>
+                        <div className="pagination">
+                            <button 
+                                className="pagination-btn pagination-nav-btn" 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                                disabled={currentPage === 1}
+                            >
+                                ← Previous
+                            </button>
+                            
+                            {[...Array(totalPages)].map((_, i) => {
+                                const pageNum = i + 1;
+                                // Sliding window logic for many pages
+                                if (totalPages > 7) {
+                                    if (pageNum !== 1 && pageNum !== totalPages && (pageNum < currentPage - 1 || pageNum > currentPage + 1)) {
+                                        if (pageNum === currentPage - 2 || pageNum === currentPage + 2) return <span key={pageNum} style={{ padding: '0 0.5rem', color: 'var(--clr-text-3)' }}>...</span>;
+                                        return null;
+                                    }
+                                }
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        className={`pagination-btn ${currentPage === pageNum ? 'active' : ''}`}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button 
+                                className="pagination-btn pagination-nav-btn" 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                                disabled={currentPage === totalPages}
+                            >
+                                Next →
+                            </button>
                         </div>
                     )}
                 </>

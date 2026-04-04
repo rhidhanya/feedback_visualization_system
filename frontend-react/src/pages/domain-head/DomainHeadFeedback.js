@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiInbox } from 'react-icons/fi';
+import { FiInbox, FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import DomainHeadLayout from '../../components/DomainHeadLayout';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
 const DomainHeadFeedback = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const domain = user?.assignedDomain;
     const [feedback, setFeedback] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
     const fetchFb = useCallback(async () => {
         if (!domain) return;
@@ -23,15 +27,25 @@ const DomainHeadFeedback = () => {
 
     if (loading) return <DomainHeadLayout title="Feedback"><div className="loading-state"><div className="spinner" /></div></DomainHeadLayout>;
 
+    // Pagination Logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentFeedback = feedback.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(feedback.length / itemsPerPage);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     return (
         <DomainHeadLayout title="Feedback">
-            <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Feedback Submissions ({feedback.length})</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Feedback Submissions ({feedback.length})</h2>
+            </div>
             <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>
                 {feedback.length === 0 ? (
                     <div className="empty-state" style={{ padding: '3rem' }}><FiInbox size={28} style={{ color: 'var(--clr-primary-lt)' }} /><span>No feedback yet</span></div>
                 ) : (
-                    <div style={{ maxHeight: 600, overflowY: 'auto' }}>
-                        {feedback.map(f => (
+                    <div style={{ maxHeight: 'none' }}>
+                        {currentFeedback.map(f => (
                             <div key={f._id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                     <strong style={{ fontSize: '0.88rem' }}>{f.studentId?.name || 'Student'}</strong>
@@ -49,6 +63,34 @@ const DomainHeadFeedback = () => {
                     </div>
                 )}
             </div>
+
+            {totalPages > 1 && (
+                <div className="pagination" style={{ marginTop: '1.5rem' }}>
+                    <button 
+                        className="pagination-btn pagination-nav-btn"
+                        disabled={currentPage === 1}
+                        onClick={() => paginate(currentPage - 1)}
+                    >
+                        ← Previous
+                    </button>
+                    {[...Array(totalPages)].map((_, i) => (
+                        <button 
+                            key={i}
+                            className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                            onClick={() => paginate(i + 1)}
+                        >
+                            {i + 1}
+                        </button>
+                    ))}
+                    <button 
+                        className="pagination-btn pagination-nav-btn"
+                        disabled={currentPage === totalPages}
+                        onClick={() => paginate(currentPage + 1)}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
         </DomainHeadLayout>
     );
 };

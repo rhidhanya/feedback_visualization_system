@@ -1,36 +1,47 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  FiBarChart2, FiUsers, FiUserCheck, FiLogOut, FiUserPlus, FiBook, FiBell
-} from 'react-icons/fi';
+import { NavLink, useLocation } from 'react-router-dom';
 import { CampusLensLogo } from './CollegePulseLogo';
 import { useAuth } from '../context/AuthContext';
+import { FiBarChart2, FiUserPlus, FiUserCheck, FiUsers, FiBook, FiBell, FiCheckCircle, FiAlertCircle, FiAward, FiShield, FiBriefcase, FiLayers, FiBookOpen } from 'react-icons/fi';
+import UserDropdown from './UserDropdown';
+import ProfileCard from './ProfileCard';
+import BackButton from './BackButton';
+import SessionNotifications from './SessionNotifications';
 
 const adminNavMain = [
     { to: '/admin/domain-overview', icon: <FiBarChart2 size={16} />, label: 'Domain Overview' },
 ];
 
 const adminNavManage = [
-    { to: '/admin/faculty-management', icon: <FiUserPlus size={16} />, label: 'Manage Faculties' },
-    { to: '/admin/hod-management', icon: <FiUserCheck size={16} />, label: 'Manage HOD' },
-    { to: '/admin/domain-heads', icon: <FiUserCheck size={16} />, label: 'Manage Incharges' },
-    { to: '/admin/users', icon: <FiUsers size={16} />, label: 'Students' },
+    { to: '/admin/faculty-management', icon: <FiAward size={16} />, label: 'Manage Faculties' },
+    { to: '/admin/hod-management', icon: <FiShield size={16} />, label: 'Manage HOD' },
+    { to: '/admin/domain-heads', icon: <FiBriefcase size={16} />, label: 'Manage Incharges' },
+    { to: '/admin/users-management', icon: <FiLayers size={16} />, label: 'Users' },
+    { to: '/admin/users', icon: <FiBookOpen size={16} />, label: 'Students' },
     { to: '/admin/subjects-management', icon: <FiBook size={16} />, label: 'Manage Subjects' },
     { to: '/admin/notifications', icon: <FiBell size={16} />, label: 'Notifications' },
 ];
 
-const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false, headerLeft, headerRight }) => {
+    const { user } = useAuth();
 
-    const handleLogout = () => { logout(); navigate('/admin/login'); };
-    const initials = user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'AD';
-    
     // Show Management section only for admin
     const showManagement = user?.role === 'admin';
+    
+    const location = useLocation();
+    
+    // HOD should go to their dashboard for overview
+    const mainNav = user?.role === 'hod' 
+        ? [
+            { to: '/hod/dashboard', icon: <FiBarChart2 size={16} />, label: 'Overview' },
+            { to: '/hod/dashboard?tab=high_performing', icon: <FiCheckCircle size={16} />, label: 'High Performing' },
+            { to: '/hod/dashboard?tab=areas_improvement', icon: <FiAlertCircle size={16} />, label: 'Areas of Improvement' }
+        ]
+        : adminNavMain;
 
     return (
         <div className="admin-layout">
+            <SessionNotifications />
             {/* ── Sidebar ── */}
             {!noSidebar && (
             <aside className="sidebar" id="admin-sidebar">
@@ -41,17 +52,24 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                 </div>
 
                 <nav className="sidebar-nav" style={{ padding: '0 1rem' }}>
-                    <div className="nav-section" style={{ marginBottom: '1.5rem' }}>
-                        <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-sidebar-text)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Main</div>
-                        {adminNavMain.map(item => (
-                            <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
-                                <span className="nav-icon">{item.icon}</span>{item.label}
-                            </NavLink>
-                        ))}
+                    <div className="nav-section" style={{ marginTop: '1.25rem' }}>
+                        {mainNav.map(item => {
+                            const isActive = location.pathname + location.search === item.to || 
+                                           (item.to === '/hod/dashboard' && location.pathname === '/hod/dashboard' && !location.search);
+                            return (
+                                <NavLink 
+                                    key={item.to} 
+                                    to={item.to} 
+                                    className={`nav-item${isActive ? ' active' : ''}`} 
+                                    style={{ marginBottom: '0.5rem' }}
+                                >
+                                    <span className="nav-icon">{item.icon}</span>{item.label}
+                                </NavLink>
+                            );
+                        })}
                     </div>
                     {showManagement && (
                         <div className="nav-section">
-                            <div className="nav-label" style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-sidebar-text)', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0.75rem 0.75rem' }}>Management</div>
                             {adminNavManage.map(item => (
                                 <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`} style={{ marginBottom: '0.5rem' }}>
                                     <span className="nav-icon">{item.icon}</span>{item.label}
@@ -61,15 +79,11 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
                     )}
                 </nav>
 
-                <div className="sidebar-footer" style={{ padding: '1.5rem 1rem', borderTop: '1px solid var(--clr-border)' }}>
-                    <button
-                        id="logout-btn"
-                        className="nav-item"
-                        style={{ color: 'var(--clr-danger)', width: '100%', background: 'var(--clr-danger-lt)' }}
-                        onClick={handleLogout}
-                    >
-                        <span className="nav-icon"><FiLogOut size={16} /></span> Logout
-                    </button>
+                <div className="sidebar-footer" style={{ padding: '1.5rem 0', borderTop: '1px solid var(--clr-border)' }}>
+                    <ProfileCard variant="sidebar" />
+                    <div style={{ marginTop: '1rem', color: 'var(--clr-text-3)', fontSize: '0.75rem', textAlign: 'center' }}>
+                        &copy; 2026 CampusLens
+                    </div>
                 </div>
             </aside>
             )}
@@ -77,18 +91,17 @@ const AdminLayout = ({ children, title = 'Dashboard', noSidebar = false }) => {
             {/* ── Main ── */}
             <div className="main-content" style={noSidebar ? { marginLeft: 0 } : {}}>
                 <header className="topbar">
-                    <span className="topbar-title">{title}</span>
+                    <div className="topbar-left">
+                        {headerLeft}
+                    </div>
                     <div className="topbar-right">
-                        <div className="user-chip" style={{ background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', color: 'var(--clr-text)' }}>
-                            <div className="user-avatar" style={{ background: 'var(--clr-primary)', color: '#FFFFFF' }}>{initials}</div>
-                            <span style={{ fontWeight: 600 }}>{user?.name}</span>
-                            <span className="badge badge-primary">
-                                {user?.role === 'dean' ? 'Dean' : user?.role === 'principal' ? 'Principal' : 'Admin'}
-                            </span>
-                        </div>
+                        {headerRight}
+                        <BackButton />
                     </div>
                 </header>
-                <main className="page-content">{children}</main>
+                <main className="page-content">
+                    {children}
+                </main>
             </div>
         </div>
     );

@@ -54,8 +54,8 @@ const SubjectManagement = () => {
     const fetchMeta = useCallback(async () => {
         try {
             const [deptRes, facRes] = await Promise.all([
-                api.get('/departments'),
-                api.get('/admin/faculty'),
+                api.get('/departments').catch(() => ({ data: { data: [] } })),
+                api.get('/admin/faculty').catch(() => ({ data: { data: [] } })),
             ]);
             setDepartments(deptRes.data.data || []);
             setFaculty(facRes.data.data || []);
@@ -194,17 +194,17 @@ const SubjectManagement = () => {
             )}
 
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="page-header" style={{ marginBottom: '1.5rem', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.2rem', marginBottom: '0.15rem' }}>Subject Management</h2>
-                    <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Add subjects and assign them to departments, semesters, and faculty.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--clr-text)', letterSpacing: '-0.02em', marginBottom: '0.25rem' }}>Subject Management</h2>
+
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button className="btn btn-ghost" onClick={fetchSubjects} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FiRefreshCw size={14} /> Refresh
+                <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                    <button className="btn btn-ghost" onClick={fetchSubjects}>
+                        <FiRefreshCw size={16} />
                     </button>
-                    <button className="btn btn-primary" onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <FiPlus size={15} /> Add Subject
+                    <button className="btn btn-primary" onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderRadius: '10px' }}>
+                        <FiPlus size={18} /> Add Subject
                     </button>
                 </div>
             </div>
@@ -231,13 +231,6 @@ const SubjectManagement = () => {
                         <span className="value">{subjects.filter(s => s.isActive).length}</span>
                     </div>
                 </div>
-                <div className="admin-kpi-card">
-                    <div className="icon-box"><FiShield size={22} /></div>
-                    <div className="info">
-                        <span className="label">Curriculum</span>
-                        <span className="value">v2.1</span>
-                    </div>
-                </div>
             </div>
 
             {/* Filters */}
@@ -246,9 +239,9 @@ const SubjectManagement = () => {
                     <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--clr-text-3)', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>Search Subjects</label>
                     <div style={{ position: 'relative' }}>
                         <FiSearch style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--clr-text-3)' }} size={16} />
-                        <input 
-                            type="text" 
-                            placeholder="Search by Name, Code or Faculty..." 
+                        <input
+                            type="text"
+                            placeholder="Search by Name, Code or Faculty..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             style={{ paddingLeft: '2.75rem', background: 'var(--clr-surface-2)', border: '1px solid var(--clr-border)', borderRadius: '4px', width: '100%', color: 'var(--clr-text)', padding: '0.65rem 0.65rem 0.65rem 2.75rem' }}
@@ -337,31 +330,41 @@ const SubjectManagement = () => {
 
             {/* Pagination Controls */}
             {!loading && totalPages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', background: '#fff', padding: '1rem', borderRadius: 10, border: '1px solid var(--clr-border)' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--clr-text-2)' }}>
-                        Showing <strong>{subjects.length}</strong> of <strong>{totalItems}</strong> subjects
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span style={{ fontSize: '0.875rem' }}>Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong></span>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button 
-                                className="btn btn-ghost" 
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}
+                <div className="pagination">
+                    <button
+                        className="pagination-btn pagination-nav-btn"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        ← Previous
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => {
+                        const pageNum = i + 1;
+                        if (totalPages > 7) {
+                            if (pageNum !== 1 && pageNum !== totalPages && (pageNum < currentPage - 1 || pageNum > currentPage + 1)) {
+                                if (pageNum === currentPage - 2 || pageNum === currentPage + 2) return <span key={pageNum} style={{ color: 'var(--clr-text-3)' }}>...</span>;
+                                return null;
+                            }
+                        }
+                        return (
+                            <button
+                                key={pageNum}
+                                className={`pagination-btn ${currentPage === pageNum ? 'active' : ''}`}
+                                onClick={() => setCurrentPage(pageNum)}
                             >
-                                ← Previous
+                                {pageNum}
                             </button>
-                            <button 
-                                className="btn btn-primary" 
-                                disabled={currentPage === totalPages}
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                style={{ padding: '0.4rem 1rem', fontSize: '0.875rem' }}
-                            >
-                                Next →
-                            </button>
-                        </div>
-                    </div>
+                        );
+                    })}
+
+                    <button
+                        className="pagination-btn pagination-nav-btn"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next →
+                    </button>
                 </div>
             )}
 

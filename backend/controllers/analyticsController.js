@@ -3,6 +3,12 @@ const Department = require("../models/Department");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 const PDFDocument = require("pdfkit");
+const { cache, buildKey } = require("../utils/cache");
+
+// Helper: check and set 5-minute analytics cache
+const ANALYTICS_TTL = 300;
+const getCached = (key) => cache.get(key);
+const setCached = (key, data) => cache.set(key, data, ANALYTICS_TTL);
 
 // ─── Helper: Build match filter from query params ─────────────────────────
 const buildMatchFilter = (query) => {
@@ -15,6 +21,9 @@ const buildMatchFilter = (query) => {
 
 // ─── GET /api/analytics/summary ──────────────────────────────────────────
 exports.getSummary = async (req, res) => {
+    const cacheKey = buildKey('summary', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -55,15 +64,16 @@ exports.getSummary = async (req, res) => {
             }
         ]);
 
-        const deptCount = await Department.countDocuments({ isActive: true });
-        const totalStudents = await User.countDocuments({ role: "student", isActive: true });
+        const [deptCount, totalStudents] = await Promise.all([
+            Department.countDocuments({ isActive: true }),
+            User.countDocuments({ role: "student", isActive: true }),
+        ]);
 
-        res.json({
+        const responseData = {
             success: true,
             data: {
                 totalFeedback: result?.totalFeedback || 0,
                 avgRating: result?.avgRating ? Math.round(result.avgRating * 100) / 100 : 0,
-                // for backward compatibility
                 avgOverallRating: result?.avgRating ? Math.round(result.avgRating * 100) / 100 : 0,
                 activeDepartments: result?.uniqueDepts?.length || 0,
                 totalDepartments: deptCount,
@@ -72,7 +82,9 @@ exports.getSummary = async (req, res) => {
                 positiveCount: result?.positiveCount || 0,
                 lowRatingCount: result?.lowRatingCount || 0
             },
-        });
+        };
+        setCached(cacheKey, responseData);
+        res.json(responseData);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -80,6 +92,9 @@ exports.getSummary = async (req, res) => {
 
 // ─── GET /api/analytics/by-faculty ───────────────────────────────────────
 exports.getByFaculty = async (req, res) => {
+    const cacheKey = buildKey('by-faculty', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -124,7 +139,9 @@ exports.getByFaculty = async (req, res) => {
             { $sort: { avgRating: -1 } },
         ]);
 
-        res.json({ success: true, count: data.length, data });
+        const result = { success: true, count: data.length, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -132,6 +149,9 @@ exports.getByFaculty = async (req, res) => {
 
 // ─── GET /api/analytics/by-subject ───────────────────────────────────────
 exports.getBySubject = async (req, res) => {
+    const cacheKey = buildKey('by-subject', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -167,7 +187,9 @@ exports.getBySubject = async (req, res) => {
             { $sort: { avgRating: -1 } },
         ]);
 
-        res.json({ success: true, count: data.length, data });
+        const result = { success: true, count: data.length, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -176,6 +198,7 @@ exports.getBySubject = async (req, res) => {
 // ─── GET /api/analytics/distribution ─────────────────────────────────────
 exports.getRatingDistribution = async (req, res) => {
     try {
+        const cacheKey = buildKey('distribution', req.query);
         const match = buildMatchFilter(req.query);
 
         const data = await Feedback.aggregate([
@@ -187,7 +210,9 @@ exports.getRatingDistribution = async (req, res) => {
         const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         data.forEach(d => { if (d._id >= 1 && d._id <= 5) distribution[d._id] = d.count; });
 
-        res.json({ success: true, data: distribution });
+        const result = { success: true, data: distribution };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -195,6 +220,9 @@ exports.getRatingDistribution = async (req, res) => {
 
 // ─── GET /api/analytics/trend ─────────────────────────────────────────────
 exports.getSemesterTrend = async (req, res) => {
+    const cacheKey = buildKey('semester-trend', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -220,7 +248,9 @@ exports.getSemesterTrend = async (req, res) => {
             { $sort: { academicYear: 1, semester: 1 } },
         ]);
 
-        res.json({ success: true, data });
+        const result = { success: true, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -229,6 +259,9 @@ exports.getSemesterTrend = async (req, res) => {
 // ─── GET /api/analytics/by-department ────────────────────────────────────
 // Avg rating + feedback count per department
 exports.getByDepartment = async (req, res) => {
+    const cacheKey = buildKey('by-department', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -274,7 +307,9 @@ exports.getByDepartment = async (req, res) => {
             { $sort: { avgRating: -1 } },
         ]);
 
-        res.json({ success: true, count: data.length, data });
+        const result = { success: true, count: data.length, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -283,6 +318,9 @@ exports.getByDepartment = async (req, res) => {
 // ─── GET /api/analytics/by-cluster ───────────────────────────────────────
 // Avg rating per cluster (CS Cluster vs Core Cluster)
 exports.getByCluster = async (req, res) => {
+    const cacheKey = buildKey('by-cluster', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -327,7 +365,9 @@ exports.getByCluster = async (req, res) => {
             { $sort: { avgRating: -1 } },
         ]);
 
-        res.json({ success: true, count: data.length, data });
+        const result = { success: true, count: data.length, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -336,10 +376,13 @@ exports.getByCluster = async (req, res) => {
 // ─── GET /api/analytics/parameters ───────────────────────────────────────
 // Average of each rating parameter overall (for radar chart)
 exports.getParameterAverages = async (req, res) => {
+    const cacheKey = buildKey('parameter-averages', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
-        const [result] = await Feedback.aggregate([
+        const [resultAgg] = await Feedback.aggregate([
             { $match: match },
             {
                 $group: {
@@ -354,21 +397,23 @@ exports.getParameterAverages = async (req, res) => {
             },
         ]);
 
-        if (!result) {
+        if (!resultAgg) {
             return res.json({ success: true, data: null });
         }
 
-        res.json({
+        const result = {
             success: true,
             data: {
-                teachingQuality: Math.round(result.teachingQuality * 100) / 100,
-                communication: Math.round(result.communication * 100) / 100,
-                punctuality: Math.round(result.punctuality * 100) / 100,
-                subjectKnowledge: Math.round(result.subjectKnowledge * 100) / 100,
-                doubtClarification: Math.round(result.doubtClarification * 100) / 100,
-                totalFeedback: result.totalFeedback,
+                teachingQuality: Math.round(resultAgg.teachingQuality * 100) / 100,
+                communication: Math.round(resultAgg.communication * 100) / 100,
+                punctuality: Math.round(resultAgg.punctuality * 100) / 100,
+                subjectKnowledge: Math.round(resultAgg.subjectKnowledge * 100) / 100,
+                doubtClarification: Math.round(resultAgg.doubtClarification * 100) / 100,
+                totalFeedback: resultAgg.totalFeedback,
             },
-        });
+        };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
@@ -377,6 +422,9 @@ exports.getParameterAverages = async (req, res) => {
 // ─── GET /api/analytics/semester-heatmap ─────────────────────────────────
 // Avg rating per (department × semester) matrix — used for heatmap
 exports.getSemesterHeatmap = async (req, res) => {
+    const cacheKey = buildKey('semester-heatmap', req.query);
+    const cached = getCached(cacheKey);
+    if (cached) return res.json(cached);
     try {
         const match = buildMatchFilter(req.query);
 
@@ -413,7 +461,9 @@ exports.getSemesterHeatmap = async (req, res) => {
             { $sort: { deptCode: 1, semester: 1 } },
         ]);
 
-        res.json({ success: true, data });
+        const result = { success: true, data };
+        setCached(cacheKey, result);
+        res.json(result);
     } catch (err) {
         res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
