@@ -28,7 +28,7 @@ api.interceptors.request.use(
         }
 
         const { TOKEN } = getAuthKeys();
-        const token = localStorage.getItem(TOKEN) || sessionStorage.getItem(TOKEN);
+        const token = sessionStorage.getItem(TOKEN) || localStorage.getItem(TOKEN);
         
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

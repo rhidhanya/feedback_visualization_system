@@ -76,16 +76,12 @@ const StudentQueries = () => {
 
     return (
         <StudentLayout>
-            <div className="page-header" style={{ marginBottom: '1.5rem' }}>
-                <h2>Queries & Support</h2>
-            </div>
-
             <div className="student-content">
                 <div style={{ maxWidth: '900px', margin: '0 auto', padding: '1rem' }}>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <div>
-                            <h2 style={{ fontSize: '1.4rem', color: '#0f172a', margin: '0 0 0.25rem 0' }}>Support & Queries</h2>
+                            <h2 style={{ fontSize: '1rem', color: '#0f172a', margin: '0 0 0.2rem 0' }}>Support &amp; Queries</h2>
                             <p style={{ color: '#64748b', margin: 0, fontSize: '0.9rem' }}>Raise issues related to campus facilities or academics.</p>
                         </div>
                         <button

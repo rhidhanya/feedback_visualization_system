@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiInbox, FiMessageCircle, FiCheckCircle, FiClock, FiAlertCircle, FiSend } from 'react-icons/fi';
+import { FiInbox, FiMessageCircle, FiCheckCircle, FiClock, FiAlertCircle, FiSend, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import DomainHeadLayout from '../../components/DomainHeadLayout';
 import api from '../../api/axios';
@@ -21,6 +21,7 @@ const DomainHeadQueries = () => {
     const [respondingTo, setRespondingTo] = useState(null);
     const [responseMessage, setResponseMessage] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [deleting, setDeleting] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
@@ -53,6 +54,21 @@ const DomainHeadQueries = () => {
             setToast({ type: 'error', msg: 'Update failed' }); 
         } finally {
             setSubmitting(false);
+        }
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to permanently delete this query? This action cannot be undone.')) return;
+        setDeleting(id);
+        try {
+            await api.delete(`/queries/${id}`);
+            setToast({ type: 'success', msg: 'Query deleted successfully' });
+            fetchQueries();
+        } catch (err) {
+            setToast({ type: 'error', msg: 'Failed to delete query' });
+        } finally {
+            setDeleting(null);
         }
         setTimeout(() => setToast(null), 3000);
     };
@@ -127,6 +143,7 @@ const DomainHeadQueries = () => {
                                                 <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-3)' }}>• {q.student?.rollNumber || 'No ID'}</span>
                                             </div>
                                         </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         {q.status !== 'Resolved' && q.status !== 'Rectified' && (
                                             <button 
                                                 className="btn btn-primary" 
@@ -136,6 +153,30 @@ const DomainHeadQueries = () => {
                                                 <FiMessageCircle size={14} /> {respondingTo === q._id ? 'Cancel' : 'Respond'}
                                             </button>
                                         )}
+                                        <button
+                                            onClick={() => handleDelete(q._id)}
+                                            disabled={deleting === q._id}
+                                            style={{ 
+                                                padding: '0.5rem 0.75rem',
+                                                fontSize: '0.85rem',
+                                                background: 'transparent',
+                                                border: '1px solid var(--clr-danger)',
+                                                color: 'var(--clr-danger)',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem',
+                                                fontWeight: 600,
+                                                opacity: deleting === q._id ? 0.5 : 1,
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--clr-danger)'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--clr-danger)'; }}
+                                        >
+                                            <FiTrash2 size={14} /> {deleting === q._id ? 'Deleting…' : 'Delete'}
+                                        </button>
+                                        </div>
                                     </div>
                                     
                                     <p style={{ fontSize: '0.9rem', color: 'var(--clr-text-2)', lineHeight: 1.6, margin: 0, padding: '0.75rem', background: 'var(--clr-surface-2)', borderRadius: '8px' }}>

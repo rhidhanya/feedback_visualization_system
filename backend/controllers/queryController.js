@@ -1,6 +1,25 @@
 const Query = require("../models/Query");
 const Notification = require("../models/Notification");
 
+// Delete a query (Admin / Domain Head)
+exports.deleteQuery = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const query = await Query.findById(id);
+        if (!query) {
+            return res.status(404).json({ success: false, message: "Query not found" });
+        }
+        await Query.findByIdAndDelete(id);
+        if (req.io) {
+            req.io.emit("query_deleted", { id });
+        }
+        res.json({ success: true, message: "Query deleted successfully" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
 // Create a new query (Student)
 exports.createQuery = async (req, res, next) => {
     try {
