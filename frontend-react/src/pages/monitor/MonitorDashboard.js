@@ -7,6 +7,7 @@ import { io } from 'socket.io-client';
 import { FiMessageSquare, FiStar, FiAlertTriangle, FiGlobe, FiInbox } from 'react-icons/fi';
 import MonitorLayout from '../../components/MonitorLayout';
 import api from '../../api/axios';
+import { API_CONFIG } from '../../config';
 
 ChartJS.register(
     CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
@@ -74,7 +75,7 @@ const MonitorDashboard = () => {
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
     useEffect(() => {
-        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', { transports: ['websocket'] });
+        const socket = io(API_CONFIG.SOCKET_URL, { transports: ['websocket'] });
         socketRef.current = socket;
         socket.on('domainFeedbackUpdated', fetchAll);
         socket.on('issueStatusUpdated', fetchAll);

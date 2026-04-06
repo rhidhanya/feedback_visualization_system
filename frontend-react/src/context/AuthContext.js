@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import GlobalToast from '../components/GlobalToast';
+import { API_CONFIG } from '../config';
 
 const AuthContext = createContext();
 
@@ -37,7 +38,7 @@ const readUser = () => {
 const getLoginErrorMessage = (err) => {
     if (err.response?.data?.message) return err.response.data.message;
     if (err.response?.data?.error) return String(err.response.data.error);
-    if (err.code === 'ERR_NETWORK') return 'Cannot reach server. Is the backend running at http://localhost:5000?';
+    if (err.code === 'ERR_NETWORK') return `Cannot reach server. Is the backend running at ${API_CONFIG.BASE_URL}?`;
     if (err.message) return err.message;
     return 'Login failed';
 };

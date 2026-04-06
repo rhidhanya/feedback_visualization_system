@@ -9,6 +9,7 @@ import DomainHeadLayout from '../../components/DomainHeadLayout';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import IssueAlert from '../../components/IssueAlert';
+import { API_CONFIG } from '../../config';
 
 ChartJS.register(
     CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, Filler
@@ -77,7 +78,7 @@ const DomainHeadDashboard = () => {
 
     useEffect(() => {
         if (!domain) return;
-        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', { transports: ['websocket'] });
+        const socket = io(API_CONFIG.SOCKET_URL, { transports: ['websocket'] });
         socketRef.current = socket;
         socket.emit('joinDomainRoom', domain);
         socket.on('domainFeedbackUpdated', fetchAll);

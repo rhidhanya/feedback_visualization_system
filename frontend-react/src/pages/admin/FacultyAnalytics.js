@@ -8,6 +8,7 @@ import { io } from 'socket.io-client';
 import { FiUsers, FiInbox, FiShield } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
+import { API_CONFIG } from '../../config';
 import './FacultyAnalytics.css';
 
 ChartJS.register(
@@ -88,7 +89,7 @@ const FacultyAnalytics = () => {
     }, [selected, filterSem, loadDetail]);
 
     useEffect(() => {
-        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', { 
+        const socket = io(API_CONFIG.SOCKET_URL, { 
             transports: ['websocket', 'polling'],
             reconnectionDelay: 1000,
             reconnection: true,

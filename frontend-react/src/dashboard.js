@@ -11,11 +11,9 @@ import KPICard from './components/KPICard';
 import ActivitiesFeed from './components/ActivityFeed';
 import './App.css';
 
-ChartJS.register(
-    CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
-);
+import { API_CONFIG } from './config';
 
-const SOCKET_URL = 'http://localhost:5000';
+const SOCKET_URL = API_CONFIG.SOCKET_URL;
 
 const Dashboard = () => {
   const navigate = useNavigate();

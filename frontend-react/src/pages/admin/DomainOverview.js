@@ -7,6 +7,7 @@ import { io } from 'socket.io-client';
 import { FiGlobe, FiStar, FiAlertTriangle, FiMessageSquare, FiInbox } from 'react-icons/fi';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../api/axios';
+import { API_CONFIG } from '../../config';
 
 const CHART_COLORS = ['#1E4DB7', '#2563EB', '#1D4ED8', '#1E3A8A']; // Darker Blue shades for high contrast
 
@@ -40,7 +41,7 @@ const DomainOverview = () => {
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
     useEffect(() => {
-        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', { transports: ['websocket'] });
+        const socket = io(API_CONFIG.SOCKET_URL, { transports: ['websocket'] });
         socketRef.current = socket;
         socket.on('domainFeedbackUpdated', fetchAll);
         return () => socket.disconnect();

@@ -1,0 +1,15 @@
+{
+  "name": "feedback-visualization-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend-react && npm install",
+    "build:frontend": "cd frontend-react && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "npx concurrently \"cd backend && npm run dev\" \"cd frontend-react && npm start\"",
+    "heroku-postbuild": "npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { API_CONFIG } from '../config';
 import { FiX, FiInfo, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const BACKEND_URL = API_CONFIG.SOCKET_URL;
 
 const SessionNotifications = () => {
     const [notifications, setNotifications] = useState([]);

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const compression = require("compression");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 require("dotenv").config();
 
@@ -99,8 +100,21 @@ app.use("/api/messages", messageRoutes);
 
 // ─── Health Check ──────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "Server is running", timestamp: new Date() });
+  res.json({ success: true, message: "Server is running", status: "healthy", timestamp: new Date() });
 });
+
+// ─── Serve Frontend Static Files (Production) ─────────────────────────────
+if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging") {
+  const buildPath = path.join(__dirname, "../frontend-react/build");
+  app.use(express.static(buildPath));
+
+  app.get("*", (req, res) => {
+    // Exclude API routes from static file serving
+    if (!req.path.startsWith("/api")) {
+      res.sendFile(path.join(buildPath, "index.html"));
+    }
+  });
+}
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────
 app.use((req, res) => {
